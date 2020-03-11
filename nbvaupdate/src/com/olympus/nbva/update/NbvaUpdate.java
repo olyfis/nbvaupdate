@@ -42,8 +42,6 @@ import org.apache.poi.ss.formula.functions.FinanceLib;
 
 // Run: http://localhost:8181/nbva/nbvaupdate?id=101-0007328-056
 //http://cvyhj3a27/:8181/nbva/nbvaupdate?id=101-0015003-034
-
-
 @WebServlet("/nbvaupdate")
 public class NbvaUpdate extends HttpServlet {
 	static Statement stmt = null;
@@ -59,10 +57,104 @@ public class NbvaUpdate extends HttpServlet {
 	static boolean invoiceCodeStat = false;
 	static String purchOption = "";
 	static int mthRem = 0;
-	
- 
-	
 	/****************************************************************************************************************************************************/
+	// Option 1 -> Effective Date < Term Date -> http://localhost:8181/nbvaupdate/nbvaupdate?id=101-0009442-019&eDate=2020-02-17
+		// Option 2 -> Effective Date Is Between Term Date and Term Date + 9 Months -> http://localhost:8181/nbvaupdate/nbvaupdate?id=101-0008803-009&eDate=2020-02-01
+		// Option 3 -> Effective Date > (Term Date + 9 Months) -> http://localhost:8181/nbvaupdate/nbvaupdate?id=101-0009166-014&eDate=2020-02-01
+		public static void  doCalcData_Orig(List<Pair<ContractData, List<AssetData> >> dataObj, String option) {
+			List<AssetData> assets = new ArrayList<AssetData>();
+			String purchOpt = "";
+			long assetID = 0;
+			double price = 0.00;
+			double rentalAmt = 0.00; // payment per month
+			double rate = 0.0725;
+			double residual = 0.00;
+			double pv = 0.00;
+			double equipCost = 0.00;
+			int dispCode = 0;
+			int k = 0;
+			int rArrSZ = dataObj.get(0).getRight().size();
+			//System.out.println("*** rArrSZ=" + rArrSZ + "--");
+			 
+			ContractData contract =  dataObj.get(0).getLeft();
+			purchOpt = contract.getPurOption();
+			assets = dataObj.get(0).getRight();
+			for (k = 0; k < rArrSZ; k++) {	
+				price = 0.00;
+				rentalAmt = assets.get(k).getaRentalAmt();
+				assetID = assets.get(k).getAssetId();
+				residual = assets.get(k).getResidAmt();
+				dispCode = assets.get(k).getDispCode();
+				equipCost = assets.get(k).getEquipCost();
+				pv = getPV(rate, mthRem, rentalAmt, residual, false) ;
+				if (option.equals("opt_1")) { // within contractual term
+					if (purchOpt.equals("01"))  { //  ($1.00 Buyout)
+					      price = (mthRem * rentalAmt);
+					}
+					//System.out.println("*** OPT="  +  option + " -- ID="  +  assetID + " -- PO=" + purchOpt + "-- RA=" + rentalAmt + "-- dispCode=" + dispCode +   "-- PV=" + pv + "--");	
+					if (residual > 0) { // Option 1
+						if (dispCode == 0) { // rollover
+							price = (mthRem * rentalAmt)+ pv;
+						}
+						if (dispCode == 1) { // buyout
+							 price = (mthRem * rentalAmt) + (residual * 1.20);
+						}
+						if (dispCode == 2) { // return
+							price = (mthRem * rentalAmt); 
+						}
+				    } else if (residual == 0)  {
+				       if (dispCode == 0 || dispCode == 1 || dispCode == 2) {
+				          price= (mthRem * rentalAmt) + 1.01;
+						}  
+					}
+				} else if (option.equals("opt_2")) {	// less than 9 months in evergreen			
+					if (residual > 0) { // Option 3
+						if (dispCode == 0) {
+							price = (residual * 1.15);
+						}
+						if (dispCode == 1) {
+							price = (residual * 1.20);
+						}
+						if (dispCode != 0 && dispCode != 1) {
+							price = 0.00;
+						}
+				    } else if (residual == 0)  {
+				       if (dispCode == 0 || dispCode == 1) {
+				          price = equipCost * 0.10;
+						}  
+				       if (dispCode != 0 && dispCode != 1) {
+							price = 0.00;
+						}	
+				    }
+				} else if (option.equals("opt_3")) { // in evergreen >= 9 months
+					if (residual > 0) { // Option 3
+						if (dispCode == 0) {  
+							 price =  residual * ( 1.15 - (0.05 * mthRem));	
+						}
+						if (dispCode == 1) {  
+							 price =  residual * ( 1.20 - (0.05 * mthRem));
+						}
+						if (dispCode != 0 && dispCode != 1) {
+							price = 0.00;
+						}	
+				    } else if (residual == 0)  {
+				       if (dispCode == 0 || dispCode == 1) {
+				          price =  1.01;
+						}  
+				       if (dispCode != 0 && dispCode != 1) {
+							price = 0.00;
+						}		       
+					}	 
+				} // End opt_3
+				
+				dataObj.get(0).getRight().get(k).setFloorPrice(price);
+				//assets.add(k, element);
+				//System.out.println("*** OPT="  +  option + " -- floorPrice=" +  price + "-- ID="  +  assetID + " -- PV=" + pv  + " -- PO=" + purchOpt + "-- RA=" + rentalAmt + "-- dispCode=" + dispCode   + "--");
+
+			} // End for
+		}
+	/****************************************************************************************************************************************************/
+
 	public static ArrayList<String> getDbData(String id, String sqlQueryFile, String booked, String qType) throws IOException {
 		FileInputStream fis = null;
 		FileReader fr = null;
@@ -77,14 +169,11 @@ public class NbvaUpdate extends HttpServlet {
 		}
 		Properties connectionProps = new Properties();
 		connectionProps.load(fis);
-		 
-		fr = new FileReader(new File(sqlQueryFile));
-		
+		fr = new FileReader(new File(sqlQueryFile));	
 		// be sure to not have line starting with "--" or "/*" or any other non alphabetical character
 		BufferedReader br = new BufferedReader(fr);
 		while((s = br.readLine()) != null){
-		      sb.append(s);
-		       
+		      sb.append(s);       
 		}
 		br.close();
 		//displayProps(connectionProps);
@@ -96,12 +185,9 @@ public class NbvaUpdate extends HttpServlet {
 			if (con != null) {
 				//System.out.println("Connected to the database");
 				statement = con.prepareStatement(query);
-				
 				//System.out.println("***^^^*** contractID=" + contractID);
 				statement.setString(1, id);
-				sep = ";";
-				
-				 
+				sep = ";";	 
 				res = Olyutil.getResultSetPS(statement);		 	 
 				strArr = Olyutil.resultSetArray(res, sep);			
 			}		
@@ -131,8 +217,6 @@ public class NbvaUpdate extends HttpServlet {
 		    }
 	}	
 	/****************************************************************************************************************************************************/
-	
-
 	/****************************************************************************************************************************************************/
 	public static AssetData loadAssetObj(String[] line) {
 		AssetData asset = new AssetData();
@@ -140,7 +224,7 @@ public class NbvaUpdate extends HttpServlet {
 		//System.out.println("***^^^*** AssetData: L22="  +  line[22] + "-- Fmt" + Olyutil.strToInteger(line[22] ) );
 		 asset.setAssetId(Olyutil.strToLong(line[7]));
 		 asset.setEquipType(line[8]); 
-		 asset.setCustomerID(line[9]); 
+		 //asset.setCustomerID(line[9]); 
 		 asset.setEquipDesc(line[10]); 
 		 asset.setModel(line[11]); 
 		 asset.setSerNum(line[12]); 
@@ -153,21 +237,16 @@ public class NbvaUpdate extends HttpServlet {
 		 asset.setResidAmt(Olyutil.strToDouble(line[19]));
 		 asset.setEquipCost(Olyutil.strToDouble(line[20]));
 		 asset.setaRentalAmt(Olyutil.strToDouble(line[21]));
-		asset.setDispCode(Olyutil.strToInteger(line[22])); 
-	
+		 asset.setDispCode(Olyutil.strToInteger(line[22])); 
 		 //asset.setTermDate( line[23]); 
-	
 		 return(asset);
 	}
-	
 	/****************************************************************************************************************************************************/
 	public static ContractData loadContractObj(String[] strSplitArr, String effectiveDate ) {
 	 
 		ContractData contract = new ContractData();
 		//double servicePay = 0.0;
-		//double equipPay = 0.0;
-		
-		 
+		//double equipPay = 0.0; 
 		contract.setContractID(strSplitArr[0]); 
 		contract.setCustomerName(strSplitArr[1]); 
 		contract.setCommenceDate(strSplitArr[2]);
@@ -180,12 +259,10 @@ public class NbvaUpdate extends HttpServlet {
 		contract.setPurOption(strSplitArr[26]); 
 		contract.setEffectiveDate(effectiveDate);
 		contract.setFinalInvDueDate(strSplitArr[4]);
- 
+		contract.setCustomerID(strSplitArr[9]);
 		//System.out.println("*** ContractData:" + strSplitArr.toString() );
-		
 		return(contract);
 	}
-	
 	/****************************************************************************************************************************************************/
 	public static  List<Pair<ContractData, List<AssetData> >> parseData(ArrayList<String> strArr, int sz, String effDate ) {
 		String[] strSplitArr = null;
@@ -194,15 +271,12 @@ public class NbvaUpdate extends HttpServlet {
 		List<AssetData> assets = new ArrayList<AssetData>();
 		List<Pair<ContractData, List<AssetData> >> listRtn = new ArrayList<>();
 		
-	
 		int i = 0;
-		 System.out.println("*** SZ=" + sz );
+		 //System.out.println("*** SZ=" + sz );
 		for (i = 0; i < sz; i++) {
-			System.out.println("*** Data:" + strArr.get(i) );
-			
+			//System.out.println("*** Data:" + strArr.get(i) );
 			strSplitArr = Olyutil.splitStr(strArr.get(i), ";");
-			purchOption = strSplitArr[26];
-			
+			purchOption = strSplitArr[26];	
 			 //System.out.println("i=" + i + " -- Value=" + strSplitArr[i]);  
 			if (i == 0) { // get Contract data
 				contract = loadContractObj(strSplitArr, effDate);
@@ -219,28 +293,17 @@ public class NbvaUpdate extends HttpServlet {
 				asset = loadAssetObj(strSplitArr);
 			}
 			// Calculate floorPrice
-			
-			
-			
-			
 			assets.add(asset);			
 		}
-		
 		//org.apache.commons.lang3.tuple.MutablePair<ContractData, List<AssetData>> p = org.apache.commons.lang3.tuple.MutablePair.of(contract, assets);
-		
-		
 		//
 		//listRtn.add(p);	
 		//listRtn.add(Pair.of(contract, assets));   
-		
 		listRtn.add(Pair.of(contract, assets));   
-		
 		//System.out.println("*** ContractReturn: ID=" + contract.getContractID() + "--");
 		//System.out.println("*** ContractReturn: EquipCost=" + contract.getEquipPayment() + "--");
 		//System.out.println("*** AssetReturn: SerNum=" + asset.getSerNum() + "--");
-		
-		return(listRtn);
-	 
+		return(listRtn); 
 	}
 	/****************************************************************************************************************************************************/
 	public static double getContractTotals(String id, ArrayList<String> strArr, String sep) {
@@ -266,38 +329,36 @@ public class NbvaUpdate extends HttpServlet {
 	public static void doAssetCheck(String termDate, String effDate, String termSpanDate) throws ParseException {
 		int rtn = 0;
 		 rtn = DateUtil.compareDates(effDate, termDate); // d1 < d2 returns -1 ; d1 > d2 returns 1; d1 == d2 returns 0
-		 System.out.println("*** RTN=" + rtn);
-		 
-		
+		 //System.out.println("*** RTN=" + rtn);	
 	}
 	/****************************************************************************************************************************************************/
 	/****************************************************************************************************************************************************/
 	/****************************************************************************************************************************************************/
-	
-	
 	/****************************************************************************************************************************************************/
 	public static ArrayList<Integer> doCheckDates(List<Pair<ContractData, List<AssetData> >> rtnPair, String effDate, int mthSpan ) {
 		ArrayList<Integer> errIDArray = new ArrayList<>();
 		int rtn = 0;
 		int dayChkRtn = 0;
-		//int mthRem = 0;
-		
+		//int mthRem = 0;	
+		int rtnDate = -15;
 		String termDate = rtnPair.get(0).getLeft().getTermDate();
 		String commDate = rtnPair.get(0).getLeft().getCommenceDate();
 		String  termPlusSpan = DateUtil.addMonthsToDate(termDate, mthSpan);
-		System.out.println("^^^^ termPlusSpan=" + termPlusSpan);
-		System.out.println("***^^^^^*** mthSpan=" + mthSpan + "-- TermDate=" + termDate + "-- eDate=" + effDate + "-- CommDate=" + commDate + "-- spanDatePlus9=" + termPlusSpan);
-		
+		//System.out.println("^^^^ termPlusSpan=" + termPlusSpan);
+		//System.out.println("***^^^^^*** mthSpan=" + mthSpan + "-- TermDate=" + termDate + "-- eDate=" + effDate + "-- CommDate=" + commDate + "-- spanDatePlus9=" + termPlusSpan);
 		// Check dates
+		
+		if (effDate.equals("Click for Calendar") || Olyutil.isNullStr(effDate)   ) {
+			errIDArray.add(rtnDate);
+			return(errIDArray);
+		}
 		try {
 			SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
 			//Date d1 = f.parse(effDate);
-			//Date d2 = f.parse(termDate);
-			
+			//Date d2 = f.parse(termDate);		
 			mthRem = DateUtil.differenceInMonths(effDate, termDate);
-			 System.out.println("***^^ dateDiff=" + mthRem + "--");
+			 //System.out.println("***^^ dateDiff=" + mthRem + "--");
 			// p1 = effDate -- p2 = commDate -- effDate cannot be less than termDate
-
 			rtn = DateUtil.compareDates(effDate, commDate);
 			// System.out.println("***^^^^^*** tDate=" + termDate + "-- eDate=" +
 			// eDateParamValue + "-- commDate=" + commDate);
@@ -308,7 +369,6 @@ public class NbvaUpdate extends HttpServlet {
 				// eDateParamValue + "-- CommDate="
 				// + commDate + "-- spanDatePlus9=" + termPlusSpan);
 				errIDArray.add(rtn);
-
 			}
 			dayChkRtn = DateUtil.compareDateDays(effDate, commDate);
 			if (dayChkRtn < 0) {
@@ -348,8 +408,7 @@ public class NbvaUpdate extends HttpServlet {
 			FV = Residual
 			Type = False
 
-		 */
-		
+		 */	
 	public static  double getPV(double rate, double term, double numPymts, double residual, boolean type) {
 		Double dRtn = 0.0;
 		Double dVal = FinanceLib.pv(rate, term, numPymts, residual, type);
@@ -358,9 +417,7 @@ public class NbvaUpdate extends HttpServlet {
 		return (dRtn);	 
 		}	 
 	/****************************************************************************************************************************************************/
-
-public static String contractCalcs(String effDate, String termDate, String termPlusSpan, List<Pair<ContractData, List<AssetData> >> dataObj) {
-		
+	public static String contractCalcs(String effDate, String termDate, String termPlusSpan, List<Pair<ContractData, List<AssetData> >> dataObj) {	
 		// String effDate = "2020-08-01";
 		// String termDate = "2020-01-01";
 		// String termPlusSpan = "2020-09-01";
@@ -369,17 +426,14 @@ public static String contractCalcs(String effDate, String termDate, String termP
 		int rtnSpan = DateUtil.compareDates(effDate, termPlusSpan);
 		int rtn_eff_gt = DateUtil.compareDates(effDate, termDate); // rtn 1
 		int rtn_eff_lt_t9 = DateUtil.compareDates(effDate, termPlusSpan); // rtn -1
-
 		//System.out.println("***^^^^^*** tDate=" + termDate + "-- eDate=" + effDate + "-- spanDatePlus9=" + termPlusSpan);
 		//System.out.println("***^^^^^*** rtn=" + rtn + "-- rtnSpan=" + rtnSpan + "--");
-
 		if (rtn == -1) { // effDate < termDate)
 			opt = "opt1";
 			doCalcData(dataObj, "opt_1");
 			//System.out.println("*** Opt 1 -- R=" + rtn + " Effective Date < Term Date");
 		}
-		//System.out.println("***^ rtn_eff_gt=" + rtn_eff_gt + "-- rtn_eff_lt_t9=" + rtn_eff_lt_t9 + "--");
-		
+		//System.out.println("***^ rtn_eff_gt=" + rtn_eff_gt + "-- rtn_eff_lt_t9=" + rtn_eff_lt_t9 + "--");	
 		// if (effdate > termDate and effDate < (Term Date + 9 Months) termPlusSpan = "2020-09-01"; effDate = "2020-08-01" termDate = "2020-01-01";
 		if (rtn_eff_gt == 1 && rtn_eff_lt_t9 == -1) { 
 			opt = "opt2";
@@ -387,7 +441,6 @@ public static String contractCalcs(String effDate, String termDate, String termP
 			//System.out.println("***^^^ Opt 2 ^^*** rtn_eff_gt=" + rtn_eff_gt + "-- rtn_eff_lt_t9=" + rtn_eff_lt_t9 + "--");
 			//System.out.println("*** (effdate > termDate and effDate < (Term Date + 9 Months)");
 		}
-
 		// effDate > (Term Date + 9 Months)); effDate = "2021-08-01"; termDate = "2020-01-01"; termPlusSpan = "2020-09-01";
 		if (rtnSpan == 1) { 
 			opt = "opt3";
@@ -412,8 +465,6 @@ public static String contractCalcs(String effDate, String termDate, String termP
 		double equipCost = 0.00;
 		int dispCode = 0;
 		int k = 0;
-		 
-		
 		int rArrSZ = dataObj.get(0).getRight().size();
 		//System.out.println("*** rArrSZ=" + rArrSZ + "--");
 		 
@@ -428,79 +479,58 @@ public static String contractCalcs(String effDate, String termDate, String termP
 			dispCode = assets.get(k).getDispCode();
 			equipCost = assets.get(k).getEquipCost();
 			pv = getPV(rate, mthRem, rentalAmt, residual, false) ;
-			if (option.equals("opt_1")) {
-				if (purchOpt.equals("01"))  { //  ($1.00 Buyout)
-				      price = (mthRem * rentalAmt);
-				}
-				System.out.println("*** OPT="  +  option + " -- ID="  +  assetID + " -- PO=" + purchOpt + "-- RA=" + rentalAmt + "-- dispCode=" + dispCode +   "-- PV=" + pv + "--");
-				
-				if (residual > 0) { // Option 1
-					if (dispCode == 0) {
-						price = (mthRem * rentalAmt)+ pv;
-					}
-					if (dispCode == 1) {
-						 price = (mthRem * rentalAmt) + (residual * 1.20);
-					}
-					if (dispCode == 2) {
-						price = (mthRem * rentalAmt); 
-					}
-			    } else if (residual == 0)  {
-			       if (dispCode == 0 || dispCode == 1 || dispCode == 2) {
-			          price= (mthRem * rentalAmt) + 1.01;
-					}  
-				}
-			} else if (option.equals("opt_2")) {
-				
-				if (residual > 0) { // Option 3
-					if (dispCode == 0) {
-						price = (residual * 1.15);
-					}
-					if (dispCode == 1) {
-						price = (residual * 1.20);
-
-					}
-					if (dispCode != 0 && dispCode != 1) {
-						price = 0.00;
-					}
-				
-			    } else if (residual == 0)  {
-			       if (dispCode == 0 || dispCode == 1) {
-			          price = equipCost * 0.10;
-					}  
-			       if (dispCode != 0 && dispCode != 1) {
-						price = 0.00;
-					}
-				
-			    }
-			} else if (option.equals("opt_3")) {
-				if (residual > 0) { // Option 3
-					if (dispCode == 0) { // leases in Evergreen 9 months or less
-						 price =  residual * ( 1.15 - (0.05 * mthRem));
-						
-						
-						
-					}
-					if (dispCode == 1) { // leases in Evergreen over 9 months
-						 price =  residual * ( 1.20 - (0.05 * mthRem));
-					}
-					if (dispCode != 0 && dispCode != 1) {
-						price = 0.00;
-					}
-				
-			    } else if (residual == 0)  {
-			       if (dispCode == 0 || dispCode == 1) {
-			          price =  1.01;
-					}  
-			       if (dispCode != 0 && dispCode != 1) {
-						price = 0.00;
-					}
-			       
-				}
-		 
-				
-			} // End opt_3
+			double rollPrice = 0.00;
+			double buyPrice = 0.00;
+			double rtnPrice = 0.00;
 			
-			dataObj.get(0).getRight().get(k).setFloorPrice(price);
+			
+				if (purchOpt.equals("01"))  { //  ($1.00 Buyout)
+					rollPrice = (mthRem * rentalAmt); // rollOver
+					buyPrice = (mthRem * rentalAmt);
+					rtnPrice = (mthRem * rentalAmt);	
+				} else {
+					if (option.equals("opt_1")) { // within contractual term
+					//System.out.println("*** OPT="  +  option + " -- ID="  +  assetID + " -- PO=" + purchOpt + "-- RA=" + rentalAmt + "-- dispCode=" + dispCode +   "-- PV=" + pv + "--");	
+						if (residual > 0) { // Option 1	
+							// rollover
+							rollPrice = (mthRem * rentalAmt) + pv;
+							// buyout
+							buyPrice = (mthRem * rentalAmt) + (residual * 1.20);
+							// return
+							rtnPrice = (mthRem * rentalAmt);
+					    } else if (residual == 0)  {					        
+					    	rollPrice = (mthRem * rentalAmt) + 1.01;
+						    buyPrice = (mthRem * rentalAmt) + 1.01;
+						    rtnPrice = (mthRem * rentalAmt) + 1.01;			 
+					    }
+					} else if (option.equals("opt_2")) {	// less than 9 months in evergreen			
+							if (residual > 0) { // Option 3
+										rollPrice = (residual * 1.15);
+										buyPrice = (residual * 1.20);
+							  			rtnPrice = 0.00; 
+							} else if (residual == 0)  {	
+								rollPrice = equipCost * 0.10;
+								buyPrice = equipCost * 0.10;	
+								rtnPrice = 0.00;		
+							}
+					} else if (option.equals("opt_3")) { // in evergreen >= 9 months
+						if (residual > 0) { // Option 3
+							 
+								rollPrice =  residual * ( 1.15 - (0.05 * mthRem));	
+								buyPrice =  residual * ( 1.20 - (0.05 * mthRem));
+								rtnPrice = 0.00;
+							 	
+					    } else if (residual == 0)  { 
+					    	   rollPrice =  1.01;
+					    	   buyPrice =  1.01;
+							   rtnPrice = 0.00;	 		       
+						}	 
+					} // End opt_
+			} // end else
+			//dataObj.get(0).getRight().get(k).setFloorPrice(price);
+			dataObj.get(0).getRight().get(k).setBuyPrice(buyPrice);;
+			dataObj.get(0).getRight().get(k).setRollPrice(rollPrice);;
+			dataObj.get(0).getRight().get(k).setRtnPrice(rtnPrice);;
 			//assets.add(k, element);
 			//System.out.println("*** OPT="  +  option + " -- floorPrice=" +  price + "-- ID="  +  assetID + " -- PV=" + pv  + " -- PO=" + purchOpt + "-- RA=" + rentalAmt + "-- dispCode=" + dispCode   + "--");
 
@@ -557,21 +587,16 @@ public static String contractCalcs(String effDate, String termDate, String termP
 			idVal = paramValue.trim();
 			// System.out.println("*** idVal:" + idVal + "--");
 		}
-
 		strArr = getDbData(idVal, sqlFile, "", "Asset");
 		arrSZ = strArr.size();
 		  //System.out.println("*** arrSz:" + arrSZ + "--");
-
 		if (arrSZ > 0) {
 			 //Olyutil.printStrArray(strArr);
-
 			kitArr = GetKitData.getKitData(kitFileName);
 			// Olyutil.printStrArray(kitArr);
 			rtnPair = parseData(strArr, arrSZ, effDate );
-
 			contractData = rtnPair.get(0).getLeft();
-			rtnArrSZ = rtnPair.get(0).getRight().size();
-			 
+			rtnArrSZ = rtnPair.get(0).getRight().size(); 
 			// System.out.println("*** RTN Arr SZ=" + rtnArrSZ + "--");
 			// System.out.println("*** ContractReturn: ID=" + contractData.getContractID() +
 			// "--");
@@ -579,18 +604,15 @@ public static String contractCalcs(String effDate, String termDate, String termP
 			// contractData.getEquipPayment() + "--");
 			// request.getSession().setAttribute("contract", contractData);
 			request.getSession().setAttribute("rtnPair", rtnPair);
-			 System.out.println("*** Get Contract Totals");
-
+			 //System.out.println("*** Get Contract Totals");
 			sumTotal = getContractTotals(idVal, ageArr, ";");
 			errIDArrayRtn = doCheckDates(rtnPair, effDate, mthSpan);
-			System.out.println("----- dateErrors=" + errIDArrayRtn.size());
+			//System.out.println("----- dateErrors=" + errIDArrayRtn.size());
 			String termDate = rtnPair.get(0).getLeft().getTermDate();
 			String commDate = rtnPair.get(0).getLeft().getCommenceDate();
 			//System.out.println("*** SumTotal=" + sumTotal );
-			String termPlusSpan = DateUtil.addMonthsToDate(termDate, mthSpan);
-			
+			String termPlusSpan = DateUtil.addMonthsToDate(termDate, mthSpan);	
 			rtnPair.get(0).getLeft().setTermPlusSpan(termPlusSpan);
-		 
 			request.getSession().setAttribute("commDate", commDate);
 			request.getSession().setAttribute("termDate", termDate);
 			request.getSession().setAttribute("effDate", effDate);
@@ -611,9 +633,6 @@ public static String contractCalcs(String effDate, String termDate, String termP
 			request.getRequestDispatcher(dispatchJSP).forward(request, response);	
 		} else {
 			request.getRequestDispatcher(dispatchJSP_Error).forward(request, response);
-			
-			
-		
 		}
 	} // End doGet()
 	/****************************************************************************************************************************************************/

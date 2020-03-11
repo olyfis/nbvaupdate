@@ -81,8 +81,8 @@ $(function() {
 	var call = function(id){
 		var myID = document.getElementById(id).value;
 		//alert("****** myID=" + myID + " ID=" + id);		 
-			//window.open("http://cvyhj3a27:8181/nbva/kitdata?key=" + myID);
-		window.open("http://localhost:8181/nbva/kitdata?key=" + myID);
+			//window.open("http://cvyhj3a27:8181/nbvaupdate/kitdata?key=" + myID);
+		window.open("http://localhost:8181/nbvaupdate/kitdata?key=" + myID);
 				
 				
 	}
@@ -243,6 +243,10 @@ public void  buildCellsContract( JspWriter out, ContractData contract, String fo
 	out.println( "<td  width=\"70%\"  >" + contract.getCustomerName() + "</td></tr>");
 	
 	out.println("<tr>");
+	out.println("<th class=\" " + style + "  \" >Customer ID</th>");
+	out.println( "<td  width=\"70%\"  >" + contract.getCustomerID() + "</td></tr>");
+	
+	out.println("<tr>");
 	out.println("<th class=\" " + style + "  \" >Effective Date</th>");
 	out.println( "<td class=\"a\">" + contract.getEffectiveDate() + "</td></tr>");
 	
@@ -348,8 +352,8 @@ public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List
 	String rowColor = null;
 	String model = "";
 	
-	String formUrlValue = "/nbvadetail_flex.jsp" ;
-	
+	//String formUrlValue = "/nbvadetail_flex.jsp" ;
+	String formUrlValue = "/nbvadetail_update.jsp" ;
 	int listArrSZ = rtnPair.size();
 	if (listArrSZ > 0) {	
 		for (int i = 0; i < listArrSZ; i++ ) {
@@ -369,7 +373,7 @@ public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List
 				cells +="<tr bgcolor=" + rowColor + ">";
 				cells +="<TD>" + asset.getAssetId() + "</td> ";
 				cells +="<TD>" + asset.getEquipType() + "</td> ";
-				cells +="<TD>" + asset.getCustomerID() + "</td> ";
+				//cells +="<TD>" + asset.getCustomerID() + "</td> ";
 				cells +="<TD>" + asset.getEquipDesc() + "</td> ";
 				if(hm.containsKey(model)){
 		           // System.out.println("The hashmap contains value:" + model);
@@ -413,7 +417,7 @@ public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List
 				cells +="<TD>" + rentalAmt_df+ "</td>  ";
 			 
 				
-				cells +="<TD>" + asset.getDispCode() + "</td>  ";
+				//cells +="<TD>" + asset.getDispCode() + "</td>  ";
 				
 				/*
 				
@@ -440,18 +444,20 @@ public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List
 	 
 				String fp  = Olyutil.decimalfmt(asset.getFloorPrice(), "$###,##0.00");
 				
+			 
+				
 				//cells +="<TD>" + asset.getTermDate() + "</td> ";
 				
-				String roll  = "TBD";
-				String buy  = "TBD";
-				String rtn  = "TBD";
+				String roll  = Olyutil.decimalfmt(asset.getRollPrice(), "$###,##0.00");
+				String buy  = Olyutil.decimalfmt(asset.getBuyPrice(), "$###,##0.00");
+				String rtn  = Olyutil.decimalfmt(asset.getRtnPrice(), "$###,##0.00");
 				
 				
 				cells +="<TD>" + roll  + "</td> ";
 				cells +="<TD>" + buy  + "</td> ";
 				cells +="<TD>" + rtn  + "</td> ";
 				
-				cells +="<TD>" + fp  + "</td> ";
+				//cells +="<TD>" + fp  + "</td> ";
 				
 				cells +="<TD>" + opt  + "</td> ";
 				

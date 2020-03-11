@@ -20,10 +20,48 @@ public class AssetData {
 	private String termDate;
 	private double floorPrice;
 	private String calcOpt;
+	private double rollPrice;
+	private double buyPrice;
+	private double rtnPrice;
 
 	/****************************************************************************************************************************************************/
+	
+	
+	
+	
+	
 	public String getCalcOpt() {
 		return calcOpt;
+	}
+
+
+	public double getRollPrice() {
+		return rollPrice;
+	}
+
+
+	public void setRollPrice(double rollPrice) {
+		this.rollPrice = rollPrice;
+	}
+
+
+	public double getBuyPrice() {
+		return buyPrice;
+	}
+
+
+	public void setBuyPrice(double buyPrice) {
+		this.buyPrice = buyPrice;
+	}
+
+
+	public double getRtnPrice() {
+		return rtnPrice;
+	}
+
+
+	public void setRtnPrice(double rtnPrice) {
+		this.rtnPrice = rtnPrice;
 	}
 
 

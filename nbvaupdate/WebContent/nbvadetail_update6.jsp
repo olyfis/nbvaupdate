@@ -22,7 +22,8 @@
 	HashMap<String, String> map = new HashMap<String, String>();
 	int mthRem = (int) session.getAttribute("mthRem");
 	String termPlusSpan =  (String) session.getAttribute("termPlusSpan");
-	DecimalFormat df = new DecimalFormat("$###,###.##");
+	//DecimalFormat df = new DecimalFormat("$###,##0.00");
+	String opt =  (String) session.getAttribute("opt");
 %>
 
 <!DOCTYPE html>
@@ -80,8 +81,8 @@ $(function() {
 	var call = function(id){
 		var myID = document.getElementById(id).value;
 		//alert("****** myID=" + myID + " ID=" + id);		 
-			//window.open("http://cvyhj3a27:8181/nbva/kitdata?key=" + myID);
-		window.open("http://localhost:8181/nbva/kitdata?key=" + myID);
+			//window.open("http://cvyhj3a27:8181/nbvaupdate/kitdata?key=" + myID);
+		window.open("http://localhost:8181/nbvaupdate/kitdata?key=" + myID);
 				
 				
 	}
@@ -201,7 +202,8 @@ public void  buildCellsTotals( JspWriter out, ContractData contract, String form
 	out.println("<tr>"); 
 	
 	
-	String sumTotal_df = df.format(sumTotal);
+	//String sumTotal_df = df.format(sumTotal);
+	String sumTotal_df = Olyutil.decimalfmt(sumTotal, "$###,##0.00");
 
 	out.println("<th class=\" " + style + "  \" >Contract Total</th>");
 	//out.println( "<td class=\"a\">" + contract.getContractID() + "</td></tr>");
@@ -220,7 +222,7 @@ public void  buildCellsTotals( JspWriter out, ContractData contract, String form
 }
 /*************************************************************************************************************************************************************/
 public void  buildCellsContract( JspWriter out, ContractData contract, String formUrl, int mthRem  ) throws IOException {
-	DecimalFormat df = new DecimalFormat("$###,##0.00");
+	//DecimalFormat df = new DecimalFormat("$###,##0.00");
 	
 	String cells = "";
 	String xDataItem = null;
@@ -270,8 +272,9 @@ public void  buildCellsContract( JspWriter out, ContractData contract, String fo
 	out.println("<th class=\" " + style + "  \" >Months Remaining</th>");
 	out.println( "<td class=\"a\">" + mthRem  + "</td></tr>");
 	
-	double equipPayment = contract.getEquipPayment();
-	String equipPayment_df = df.format(equipPayment);
+	//double equipPayment = contract.getEquipPayment();
+	//String equipPayment_df = df.format(equipPayment);
+	String equipPayment_df = Olyutil.decimalfmt(contract.getEquipPayment(), "$###,##0.00");
 	out.println("<tr>");
 	out.println("<th class=\" " + style + "  \" >Equipment Payment</th>");
 	out.println( "<td class=\"a\">" + equipPayment_df + "</td></tr>");
@@ -333,7 +336,7 @@ public static void displayObj(Object obj) throws IOException, IllegalAccessExcep
 
 }
 /*************************************************************************************************************************************************************/
-public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List<Pair<ContractData, List<AssetData> >> rtnPair  ) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List<Pair<ContractData, List<AssetData> >> rtnPair, String opt  ) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 	DecimalFormat df = new DecimalFormat("$###,##0.00");
 	String cells = "";
 	String xDataItem = null;
@@ -344,9 +347,9 @@ public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List
 	String excel = null;
 	String rowColor = null;
 	String model = "";
-	 
-	String formUrlValue = "/nbvadetail_flex.jsp" ;
 	
+	//String formUrlValue = "/nbvadetail_flex.jsp" ;
+	String formUrlValue = "/nbvadetail_update.jsp" ;
 	int listArrSZ = rtnPair.size();
 	if (listArrSZ > 0) {	
 		for (int i = 0; i < listArrSZ; i++ ) {
@@ -394,22 +397,19 @@ public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List
 				cells +="<TD>" + asset.getEquipCity() + "</td> ";
 				cells +="<TD>" + asset.getEquipState() + "</td> ";
 				cells +="<TD>" + asset.getEquipZip() + "</td>  ";
+		
 				
-				
-				double residAmt = asset.getResidAmt();
-				String residAmt_df = df.format(residAmt);
+				String residAmt_df = Olyutil.decimalfmt(asset.getResidAmt(), "$###,##0.00");
 				//System.out.println("*** ResidualAmt=" + asset.getResidAmt()   + "FMT:" + residAmt_df );
 				cells +="<TD>" + residAmt_df + "</td>  ";
 				
-				double equipCost = asset.getEquipCost();
-				String equipCost_df = df.format(equipCost);
+		 
+				String equipCost_df = Olyutil.decimalfmt(asset.getEquipCost(), "$###,##0.00");
 				
 				
 				cells +="<TD>" + equipCost_df  + "</td>  ";
-				
-				double rentalAmt = asset.getaRentalAmt();
-				String rentalAmt_df = df.format(rentalAmt);
-				
+	 
+				String rentalAmt_df  = Olyutil.decimalfmt(asset.getaRentalAmt(), "$###,##0.00");
 				cells +="<TD>" + rentalAmt_df+ "</td>  ";
 			 
 				
@@ -437,14 +437,27 @@ public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List
 					cells +=" </select> </td> ";
 				
 				*/
-				
-					 
-				      
-				
-				String fp = df.format(asset.getFloorPrice());
+	 
+				String fp  = Olyutil.decimalfmt(asset.getFloorPrice(), "$###,##0.00");
 				
 				//cells +="<TD>" + asset.getTermDate() + "</td> ";
+				
+				String roll  = "TBD";
+				String buy  = "TBD";
+				String rtn  = "TBD";
+				
+				
+				cells +="<TD>" + roll  + "</td> ";
+				cells +="<TD>" + buy  + "</td> ";
+				cells +="<TD>" + rtn  + "</td> ";
+				
 				cells +="<TD>" + fp  + "</td> ";
+				
+				cells +="<TD>" + opt  + "</td> ";
+				
+				
+				
+				
 				
 				cells +=" </tr> ";
 				
@@ -613,7 +626,7 @@ out.println("</form> </td></tr></table>");
 		out.println(header2);
 		out.println("</tr></thead>");
 		out.println("<tbody id=\"report\">");
-		out.println(buildCellsAsset(map, out, list)); // build data cells from file
+		out.println(buildCellsAsset(map, out, list, opt)); // build data cells from file
 		
 		out.println("</tbody></table><BR>"); // Close Table
 	

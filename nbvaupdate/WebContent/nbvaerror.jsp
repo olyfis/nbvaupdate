@@ -189,6 +189,10 @@ if (errMap != null ) {
 				if (eMap.get(k) == -10) {
 					out.println("<h5> The contract cannot have a Status Code set to \"<B>03</B>\" </h5><BR>");
 				}
+				if (eMap.get(k) == -15) {
+					out.println("<h5> The  Effective Date was not entered. </h5><BR>");
+				}
+				
 			}
 		}
 		

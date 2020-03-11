@@ -17,7 +17,11 @@ package com.olympus.nbva.contracts;
 	private String finalInvDueDate;
 	private String effectiveDate;
 	private String termPlusSpan;
+	private String customerID;
 	/****************************************************************************************************************************************************/
+	
+	
+	
 	public String getTermPlusSpan() {
 		return termPlusSpan;
 	}
@@ -25,10 +29,12 @@ package com.olympus.nbva.contracts;
 		this.termPlusSpan = termPlusSpan;
 	}
 	
-	
-	
-	
-	
+	public String getCustomerID() {
+		return customerID;
+	}
+	public void setCustomerID(String customerID) {
+		this.customerID = customerID;
+	}
 	public String getEffectiveDate() {
 		return effectiveDate;
 	}
