@@ -3,7 +3,7 @@ package com.olympus.nbva.assets;
 public class AssetData {
 	private long assetId;
 	private String equipType;
-	private String customerID;
+	private String customerID; // agreementNum
 	private String equipDesc;
 	private String Model;
 	private String serNum;

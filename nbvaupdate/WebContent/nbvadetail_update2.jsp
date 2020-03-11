@@ -314,11 +314,11 @@ public void  buildCellsContract( JspWriter out, ContractData contract, String fo
 	
 	
  
-	out.println("<tr>");
-	out.println("<th class=\" " + style + "  \" >Save as Excel File</th>");	
-	out.println( "<td class=\"a\"> ");
-	out.println(" <form name=\"excelForm\"    enctype=\"multipart/form-data\"   method=\"get\" action=" +   formUrl  +  " >    ");
- 	out.println("<input type=\"submit\" value=\"Save Excel File\" class=\"btn\" /> ");
+	//out.println("<tr>");
+	//out.println("<th class=\" " + style + "  \" >Save as Excel File</th>");	
+	//out.println( "<td class=\"a\"> ");
+	//out.println(" <form name=\"excelForm\"    enctype=\"multipart/form-data\"   method=\"get\" action=" +   formUrl  +  " >    ");
+	//out.println("<input type=\"submit\" value=\"Save Excel File\" class=\"btn\" /> ");
 	
 	out.println("</table>");
 	//out.println("</form> </td></tr></table>");

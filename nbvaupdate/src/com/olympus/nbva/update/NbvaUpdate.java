@@ -58,101 +58,7 @@ public class NbvaUpdate extends HttpServlet {
 	static String purchOption = "";
 	static int mthRem = 0;
 	/****************************************************************************************************************************************************/
-	// Option 1 -> Effective Date < Term Date -> http://localhost:8181/nbvaupdate/nbvaupdate?id=101-0009442-019&eDate=2020-02-17
-		// Option 2 -> Effective Date Is Between Term Date and Term Date + 9 Months -> http://localhost:8181/nbvaupdate/nbvaupdate?id=101-0008803-009&eDate=2020-02-01
-		// Option 3 -> Effective Date > (Term Date + 9 Months) -> http://localhost:8181/nbvaupdate/nbvaupdate?id=101-0009166-014&eDate=2020-02-01
-		public static void  doCalcData_Orig(List<Pair<ContractData, List<AssetData> >> dataObj, String option) {
-			List<AssetData> assets = new ArrayList<AssetData>();
-			String purchOpt = "";
-			long assetID = 0;
-			double price = 0.00;
-			double rentalAmt = 0.00; // payment per month
-			double rate = 0.0725;
-			double residual = 0.00;
-			double pv = 0.00;
-			double equipCost = 0.00;
-			int dispCode = 0;
-			int k = 0;
-			int rArrSZ = dataObj.get(0).getRight().size();
-			//System.out.println("*** rArrSZ=" + rArrSZ + "--");
-			 
-			ContractData contract =  dataObj.get(0).getLeft();
-			purchOpt = contract.getPurOption();
-			assets = dataObj.get(0).getRight();
-			for (k = 0; k < rArrSZ; k++) {	
-				price = 0.00;
-				rentalAmt = assets.get(k).getaRentalAmt();
-				assetID = assets.get(k).getAssetId();
-				residual = assets.get(k).getResidAmt();
-				dispCode = assets.get(k).getDispCode();
-				equipCost = assets.get(k).getEquipCost();
-				pv = getPV(rate, mthRem, rentalAmt, residual, false) ;
-				if (option.equals("opt_1")) { // within contractual term
-					if (purchOpt.equals("01"))  { //  ($1.00 Buyout)
-					      price = (mthRem * rentalAmt);
-					}
-					//System.out.println("*** OPT="  +  option + " -- ID="  +  assetID + " -- PO=" + purchOpt + "-- RA=" + rentalAmt + "-- dispCode=" + dispCode +   "-- PV=" + pv + "--");	
-					if (residual > 0) { // Option 1
-						if (dispCode == 0) { // rollover
-							price = (mthRem * rentalAmt)+ pv;
-						}
-						if (dispCode == 1) { // buyout
-							 price = (mthRem * rentalAmt) + (residual * 1.20);
-						}
-						if (dispCode == 2) { // return
-							price = (mthRem * rentalAmt); 
-						}
-				    } else if (residual == 0)  {
-				       if (dispCode == 0 || dispCode == 1 || dispCode == 2) {
-				          price= (mthRem * rentalAmt) + 1.01;
-						}  
-					}
-				} else if (option.equals("opt_2")) {	// less than 9 months in evergreen			
-					if (residual > 0) { // Option 3
-						if (dispCode == 0) {
-							price = (residual * 1.15);
-						}
-						if (dispCode == 1) {
-							price = (residual * 1.20);
-						}
-						if (dispCode != 0 && dispCode != 1) {
-							price = 0.00;
-						}
-				    } else if (residual == 0)  {
-				       if (dispCode == 0 || dispCode == 1) {
-				          price = equipCost * 0.10;
-						}  
-				       if (dispCode != 0 && dispCode != 1) {
-							price = 0.00;
-						}	
-				    }
-				} else if (option.equals("opt_3")) { // in evergreen >= 9 months
-					if (residual > 0) { // Option 3
-						if (dispCode == 0) {  
-							 price =  residual * ( 1.15 - (0.05 * mthRem));	
-						}
-						if (dispCode == 1) {  
-							 price =  residual * ( 1.20 - (0.05 * mthRem));
-						}
-						if (dispCode != 0 && dispCode != 1) {
-							price = 0.00;
-						}	
-				    } else if (residual == 0)  {
-				       if (dispCode == 0 || dispCode == 1) {
-				          price =  1.01;
-						}  
-				       if (dispCode != 0 && dispCode != 1) {
-							price = 0.00;
-						}		       
-					}	 
-				} // End opt_3
-				
-				dataObj.get(0).getRight().get(k).setFloorPrice(price);
-				//assets.add(k, element);
-				//System.out.println("*** OPT="  +  option + " -- floorPrice=" +  price + "-- ID="  +  assetID + " -- PV=" + pv  + " -- PO=" + purchOpt + "-- RA=" + rentalAmt + "-- dispCode=" + dispCode   + "--");
-
-			} // End for
-		}
+	
 	/****************************************************************************************************************************************************/
 
 	public static ArrayList<String> getDbData(String id, String sqlQueryFile, String booked, String qType) throws IOException {
@@ -222,6 +128,9 @@ public class NbvaUpdate extends HttpServlet {
 		AssetData asset = new AssetData();
 		 //System.out.println("*** AssetData:" + line.toString() );
 		//System.out.println("***^^^*** AssetData: L22="  +  line[22] + "-- Fmt" + Olyutil.strToInteger(line[22] ) );
+		//System.out.println("***^^^*** AssetData: L11="  +  line[11] + "--"   );
+		//System.out.println("***^^^*** AssetData: L12="  +  line[12] + "--"   );
+		
 		 asset.setAssetId(Olyutil.strToLong(line[7]));
 		 asset.setEquipType(line[8]); 
 		 //asset.setCustomerID(line[9]); 
@@ -570,7 +479,7 @@ public class NbvaUpdate extends HttpServlet {
 		// System.out.println("*** eDate=" + eDateParamValue + "-- RO=" + roParamValue +
 		// "--");
 		String formUrl = "formUrl";
-		String formUrlValue = "/nbva/nbvaexcel ";
+		String formUrlValue = "/nbvaupdate/nbvaexl ";
 		request.getSession().setAttribute(formUrl, formUrlValue);
 		String sep = ";";
 		//String termPlusSpan = "";
