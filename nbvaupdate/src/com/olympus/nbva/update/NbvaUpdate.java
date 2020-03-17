@@ -42,6 +42,7 @@ import org.apache.poi.ss.formula.functions.FinanceLib;
 
 // Run: http://localhost:8181/nbva/nbvaupdate?id=101-0007328-056
 //http://cvyhj3a27/:8181/nbva/nbvaupdate?id=101-0015003-034
+// http://localhost:8181/nbvaupdate/nbvaupdate?id=101-0013771-035&eDate=2020-03-10   // Kit Data
 @WebServlet("/nbvaupdate")
 public class NbvaUpdate extends HttpServlet {
 	static Statement stmt = null;
@@ -151,7 +152,7 @@ public class NbvaUpdate extends HttpServlet {
 		 return(asset);
 	}
 	/****************************************************************************************************************************************************/
-	public static ContractData loadContractObj(String[] strSplitArr, String effectiveDate ) {
+	public static ContractData loadContractObj(String[] strSplitArr, String effectiveDate, String buyoutDate, String invoice) {
 	 
 		ContractData contract = new ContractData();
 		//double servicePay = 0.0;
@@ -167,13 +168,21 @@ public class NbvaUpdate extends HttpServlet {
 		contract.setInvoiceCode(strSplitArr[25]); 
 		contract.setPurOption(strSplitArr[26]); 
 		contract.setEffectiveDate(effectiveDate);
+		contract.setBuyoutDate(buyoutDate);
 		contract.setFinalInvDueDate(strSplitArr[4]);
 		contract.setCustomerID(strSplitArr[9]);
+		contract.setCustomerAddr1(strSplitArr[14]); 
+		contract.setCustomerAddr2(strSplitArr[15]); 
+		contract.setCustomerCity(strSplitArr[16]); 
+		contract.setCustomerState(strSplitArr[17]);
+		contract.setCustomerZip(strSplitArr[18]); 
+		contract.setInvoice(invoice);
+		
 		//System.out.println("*** ContractData:" + strSplitArr.toString() );
 		return(contract);
 	}
 	/****************************************************************************************************************************************************/
-	public static  List<Pair<ContractData, List<AssetData> >> parseData(ArrayList<String> strArr, int sz, String effDate ) {
+	public static  List<Pair<ContractData, List<AssetData> >> parseData(ArrayList<String> strArr, int sz, String effDate, String boDate, String invoice ) {
 		String[] strSplitArr = null;
 		ContractData contract = null;
 		AssetData asset = null;
@@ -188,7 +197,7 @@ public class NbvaUpdate extends HttpServlet {
 			purchOption = strSplitArr[26];	
 			 //System.out.println("i=" + i + " -- Value=" + strSplitArr[i]);  
 			if (i == 0) { // get Contract data
-				contract = loadContractObj(strSplitArr, effDate);
+				contract = loadContractObj(strSplitArr, effDate, boDate, invoice);
 				asset = loadAssetObj(strSplitArr);
 				if (strSplitArr[24].equals("03")) { 
 					contractStat = true;
@@ -372,6 +381,10 @@ public class NbvaUpdate extends HttpServlet {
 		double residual = 0.00;
 		double pv = 0.00;
 		double equipCost = 0.00;
+		double buyOutTotal = 0.00;
+		double rollTotal = 0.00;
+		double rtnTotal = 0.00;
+		
 		int dispCode = 0;
 		int k = 0;
 		int rArrSZ = dataObj.get(0).getRight().size();
@@ -438,12 +451,19 @@ public class NbvaUpdate extends HttpServlet {
 			} // end else
 			//dataObj.get(0).getRight().get(k).setFloorPrice(price);
 			dataObj.get(0).getRight().get(k).setBuyPrice(buyPrice);;
+			buyOutTotal += buyPrice;
+			rollTotal += rollPrice;
+			rtnTotal += rtnPrice;
 			dataObj.get(0).getRight().get(k).setRollPrice(rollPrice);;
 			dataObj.get(0).getRight().get(k).setRtnPrice(rtnPrice);;
 			//assets.add(k, element);
 			//System.out.println("*** OPT="  +  option + " -- floorPrice=" +  price + "-- ID="  +  assetID + " -- PV=" + pv  + " -- PO=" + purchOpt + "-- RA=" + rentalAmt + "-- dispCode=" + dispCode   + "--");
 
 		} // End for
+		dataObj.get(0).getLeft().setBuyOut(buyOutTotal);
+		dataObj.get(0).getLeft().setRollTotal(rollTotal);
+		dataObj.get(0).getLeft().setRtnTotal(rtnTotal);
+		
 	}
 	/****************************************************************************************************************************************************/
 	/****************************************************************************************************************************************************/
@@ -475,11 +495,19 @@ public class NbvaUpdate extends HttpServlet {
 		String eDateParamName = "eDate";
 		String eDateParamValue = request.getParameter(eDateParamName);
 		String effDate = eDateParamValue;
+		
+		String boDateParamName = "boDate";
+		String boDateParamValue = request.getParameter(boDateParamName);
+		String boDate = boDateParamValue;
+		
+		String invoiceParamName = "invoice";
+		String invoiceParamValue = request.getParameter(invoiceParamName);
+		String invoice = invoiceParamValue;
 
 		// System.out.println("*** eDate=" + eDateParamValue + "-- RO=" + roParamValue +
 		// "--");
 		String formUrl = "formUrl";
-		String formUrlValue = "/nbvaupdate/nbvaexl ";
+		String formUrlValue = "/nbvaupdate/nbvaexcel2";
 		request.getSession().setAttribute(formUrl, formUrlValue);
 		String sep = ";";
 		//String termPlusSpan = "";
@@ -503,7 +531,7 @@ public class NbvaUpdate extends HttpServlet {
 			 //Olyutil.printStrArray(strArr);
 			kitArr = GetKitData.getKitData(kitFileName);
 			// Olyutil.printStrArray(kitArr);
-			rtnPair = parseData(strArr, arrSZ, effDate );
+			rtnPair = parseData(strArr, arrSZ, effDate, boDate, invoice );
 			contractData = rtnPair.get(0).getLeft();
 			rtnArrSZ = rtnPair.get(0).getRight().size(); 
 			// System.out.println("*** RTN Arr SZ=" + rtnArrSZ + "--");
@@ -524,6 +552,7 @@ public class NbvaUpdate extends HttpServlet {
 			rtnPair.get(0).getLeft().setTermPlusSpan(termPlusSpan);
 			request.getSession().setAttribute("commDate", commDate);
 			request.getSession().setAttribute("termDate", termDate);
+			request.getSession().setAttribute("boDate", boDate);
 			request.getSession().setAttribute("effDate", effDate);
 			request.getSession().setAttribute("mthRem", mthRem);
 			request.getSession().setAttribute("idVal", idVal);

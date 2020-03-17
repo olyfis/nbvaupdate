@@ -288,16 +288,16 @@ public void  buildCellsContract( JspWriter out, ContractData contract, String fo
 	out.println( "<td class=\"a\">" + contract.getServicePayment() + "</td></tr>");
 	
 	out.println("<tr>");
-	out.println("<th class=\" " + style + "  \" >Generate Buyout</th>");
-	out.println( "<td class=\"a\"> TBD"   + "</td></tr>");
+	out.println("<th class=\" " + style + "  \" >Contract Buyout</th>");
+	out.println( "<td class=\"a\">" +    Olyutil.decimalfmt(contract.getBuyOut(), "$###,##0.00")  + "</td></tr>");
 	
 	out.println("<tr>");
-	out.println("<th class=\" " + style + "  \" >Generate Rollover</th>");
-	out.println( "<td class=\"a\"> TBD"   + "</td></tr>");
+	out.println("<th class=\" " + style + "  \" >Contract Rollover</th>");
+	out.println( "<td class=\"a\">" + Olyutil.decimalfmt(contract.getRollTotal(), "$###,##0.00")   + "</td></tr>");
 	
 	out.println("<tr>");
-	out.println("<th class=\" " + style + "  \" >Generate Returns</th>");
-	out.println( "<td class=\"a\"> TBD"   + "</td></tr>");
+	out.println("<th class=\" " + style + "  \" >Contract Returns</th>");
+	out.println( "<td class=\"a\">" + Olyutil.decimalfmt(contract.getRtnTotal(), "$###,##0.00")  + "</td></tr>");
 	
 	out.println("<tr>");
 	out.println("<th class=\" " + style + "  \" >Invoice Code</th>");
@@ -324,7 +324,7 @@ public void  buildCellsContract( JspWriter out, ContractData contract, String fo
 	//out.println("</form> </td></tr></table>");
 	
 	out.println( "  </td></tr>");
-	
+	System.out.println("*** boDate=" + contract.getBuyoutDate() + "--");
 }
 
 /*************************************************************************************************************************************************************/
