@@ -264,7 +264,7 @@ public class WriteExcel extends HttpServlet {
 					cell.setCellStyle(style);
 					cell = row.createCell(1);
 					cell.setCellValue((String) asset.getEquipType());
-					sheet.autoSizeColumn(1); 
+					//sheet.autoSizeColumn(1); 
 					cell.setCellStyle(style);
 					/*
 					cell = row.createCell(2);
@@ -277,42 +277,42 @@ public class WriteExcel extends HttpServlet {
 					cell = row.createCell(2);
 					cell.setCellStyle(style);
 					cell.setCellValue((String) asset.getEquipDesc());					
-					sheet.autoSizeColumn(2); 
+					//sheet.autoSizeColumn(2); 
 					cell = row.createCell(3);
 					cell.setCellStyle(style);
 					cell.setCellValue((String) asset.getModel());
-					sheet.autoSizeColumn(3); 
+					//sheet.autoSizeColumn(3); 
 					cell = row.createCell(4);
 					cell.setCellStyle(style);
 					cell.setCellValue( asset.getSerNum().replaceAll("null", ""));
-					sheet.autoSizeColumn(4); 
+					//sheet.autoSizeColumn(4); 
 					cell = row.createCell(5);
 					cell.setCellStyle(style);
 					cell.setCellValue((int) asset.getQty());
-					sheet.autoSizeColumn(5); 
+					//sheet.autoSizeColumn(5); 
 					cell = row.createCell(6);
 					cell.setCellStyle(style);
 					cell.setCellValue((String) asset.getEquipAddr1());
-					sheet.autoSizeColumn(6); 
+					//sheet.autoSizeColumn(6); 
 					cell = row.createCell(7);
 					cell.setCellStyle(style);
 					cell.setCellValue((String) asset.getEquipCity());
-					sheet.autoSizeColumn(7); 
+					//sheet.autoSizeColumn(7); 
 					
 					cell = row.createCell(8);
 					cell.setCellStyle(style);
 					cell.setCellValue((String) asset.getEquipState());
-					sheet.autoSizeColumn(8); 
+					//sheet.autoSizeColumn(8); 
 					
 					cell = row.createCell(9);
 					cell.setCellStyle(style);
 					cell.setCellValue((String) asset.getEquipZip());
-					sheet.autoSizeColumn(9); 
+					//sheet.autoSizeColumn(9); 
 					
 					cell = row.createCell(10);
 					cell.setCellStyle(style);
 					cell.setCellValue((int) asset.getDispCode());
-					sheet.autoSizeColumn(10); 
+					//sheet.autoSizeColumn(10); 
 					
 					
 				/*	
@@ -667,47 +667,36 @@ public class WriteExcel extends HttpServlet {
 			// ********************* Begin display assets
 			for (int m = 0; m < ageArrSZ; m++ ) {
 				zz = m;
-				lineArr = Olyutil.splitStr(ageArr.get(m), ";");
 				
-				
-				if (contractID.equals(lineArr[0])) {
-					/* System.out.println("***^^^*** LineArr:" + 
-							"M=" + m
-							+ " -- ID="     + contractID 
-							+ " -- invoice=" + lineArr[6]
-							+ " -- Date="     + lineArr[5]
-							+ " -- amt="     + lineArr[4]							 
-							+ "--");  */
-					amt = Olyutil.strToDouble(lineArr[4]);
-					row = sheet1.getRow(k);
-					cell = row.getCell(1);
-					cell.setCellValue(lineArr[6]);
+
+					lineArr = Olyutil.splitStr(ageArr.get(m), ";");
+					if (contractID.equals(lineArr[0])) {
+						/* System.out.println("***^^^*** LineArr:" + 
+								"M=" + m
+								+ " -- ID="     + contractID 
+								+ " -- invoice=" + lineArr[6]
+								+ " -- Date="     + lineArr[5]
+								+ " -- amt="     + lineArr[4]							 
+								+ "--");  */
+						amt = Olyutil.strToDouble(lineArr[4]);
+						row = sheet1.getRow(k);
+						cell = row.getCell(1);
+						cell.setCellValue(lineArr[6]);
+						
+						cell = row.getCell(2);
+						cell.setCellValue( lineArr[5]);
+						
+						cell = row.getCell(3);
+						cell.setCellValue( "");
+						
+						cell = row.getCell(4);
+						cell.setCellValue( Olyutil.decimalfmt(amt, "$###,##0.00"));				
+						k++;		
+					}
 					
-					cell = row.getCell(2);
-					cell.setCellValue( lineArr[5]);
-					
-					cell = row.getCell(3);
-					cell.setCellValue( "");
-					
-					cell = row.getCell(4);
-					cell.setCellValue( Olyutil.decimalfmt(amt, "$###,##0.00"));
-					
-					k++;
-					
-				}
-				
-				
-				
-			}
-			
-			//System.out.println("***^^^*** End Invoice code  M=" + zz + " -- SZ=" + ageArrSZ);
-			
-			
-			
-			// ********************* End display assets
-			
-		} // end if SZ
-		
+			}	
+			//System.out.println("***^^^*** End Invoice code  M=" + zz + " -- SZ=" + ageArrSZ);			
+		} // end if SZ	
 	}
 	
 	
@@ -763,7 +752,7 @@ public class WriteExcel extends HttpServlet {
 		loadWorkSheetContracts(workbook, sheet, list);
 		//System.out.println("** Call loadWorkSheetAssets");
 		loadWorkSheetAssets(workbook, sheet, list);
-		System.out.println("** Call Write Excel");
+		//System.out.println("** Call Write Excel");
 		// System.out.println("** Call loadWorkSheet");
 		// WriteExcel.loadWorkSheet(workbook, sheet, strArr, 1, ";");
 		// BufferedInputStream in = null;
