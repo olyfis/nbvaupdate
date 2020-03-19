@@ -315,7 +315,7 @@ public void  buildCellsContract( JspWriter out, ContractData contract, String fo
 	
  
 	out.println("<tr>");
-	out.println("<th class=\" " + style + "  \" >Save as Excel File</th>");	
+	out.println("<th class=\" " + style + "  \" >Save as Excel File <br> May take a while to build file.</th>");	
 	out.println( "<td class=\"a\"> ");
 	out.println(" <form name=\"excelForm\"    enctype=\"multipart/form-data\"   method=\"get\" action=" +   formUrl  +  " >    ");
  	out.println("<input type=\"submit\" value=\"Save Excel File\" class=\"btn\" /> ");

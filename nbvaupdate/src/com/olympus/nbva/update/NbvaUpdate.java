@@ -132,13 +132,12 @@ public class NbvaUpdate extends HttpServlet {
 		String desc = line[10];
 		
 		if (desc.equals("EUA") || desc.equals("B/O")) {
-			System.out.println("***^^^*** AssetData: Desc="  +  desc );
+			//System.out.println("***^^^*** AssetData: Desc="  +  desc );
 			if (residual == 0.00 || equipCost == 0.00) {
-				System.out.println("***^^^*** AssetData: residual="  +  residual  + " -- EC=" + equipCost);
+				//System.out.println("***^^^*** AssetData: residual="  +  residual  + " -- EC=" + equipCost);
 				asset = null;
 				return(asset);
-			}
-			
+			}	
 		}
 		
 		 //System.out.println("*** AssetData:" + line.toString() );
@@ -460,8 +459,8 @@ public class NbvaUpdate extends HttpServlet {
 					} else if (option.equals("opt_3")) { // in evergreen >= 9 months
 						if (residual > 0) { // Option 3
 							 
-								rollPrice =  residual * ( 1.15 - (0.05 * mthRem));	
-								buyPrice =  residual * ( 1.20 - (0.05 * mthRem));
+								rollPrice =  residual * ( 1.15 + (0.05 * mthRem));	
+								buyPrice =  residual * ( 1.20 + (0.05 * mthRem));
 								rtnPrice = 0.00;
 							 	
 					    } else if (residual == 0)  { 
@@ -469,7 +468,7 @@ public class NbvaUpdate extends HttpServlet {
 					    	   buyPrice =  1.01;
 							   rtnPrice = 0.00;	 		       
 						}	 
-					} // End opt_
+					} // End opt_3
 			} // end else
 			//dataObj.get(0).getRight().get(k).setFloorPrice(price);
 			dataObj.get(0).getRight().get(k).setBuyPrice(buyPrice);;

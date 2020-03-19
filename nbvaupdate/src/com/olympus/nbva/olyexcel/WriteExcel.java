@@ -238,11 +238,11 @@ public class WriteExcel extends HttpServlet {
 				List<AssetData> assetList = new ArrayList<AssetData>();
 				assetList	= rtnPair.get(i).getRight();
 				//System.out.println("<h5> listArrSZ =" + listArrSZ + " -- rtnArrSZ=" +  rtnArrSZ + "--</h5>");
-				for (int j = 0; j < rtnArrSZ; j++ ) {
+				for (int n = 0; n < rtnArrSZ; n++ ) {
 					AssetData asset = new AssetData();
-					asset = assetList.get(j);
+					asset = assetList.get(n);
 					//System.out.println("*** AssetReturn: EquipmentType=" + asset.getEquipType() + "--");
-					//System.out.println("*** AssetReturn: CustomerID=" + asset.getCustomerID() + "--");
+					//System.out.println("*** AssetReturn: N=" + n + " -- CustomerID=" + asset.getCustomerID() + "--");
 					
 					
 					CellStyle style = workbook.createCellStyle();
@@ -257,7 +257,7 @@ public class WriteExcel extends HttpServlet {
 					
 					
 					
-					Row row = sheet.createRow(j + 15);
+					Row row = sheet.createRow(n + 15);
 					Cell cell = row.createCell(0);
 					cell.setCellValue((long) asset.getAssetId());
 					
@@ -337,9 +337,12 @@ public class WriteExcel extends HttpServlet {
 					
 					
 				*/
-				}
-			}
-		}	
+				} // end for n
+				//System.out.println("*** End n loop");
+			} //end for i
+			//System.out.println("*** End i loop");
+		} // end if	
+		//System.out.println("*** End if");
 	}
 	/****************************************************************************************************************************************************/
 	public static void doBuyoutInvoice(XSSFWorkbook workbook, String tab, List<Pair<ContractData, List<AssetData> >> rtnPair, String dateStamp ) throws IOException {
@@ -553,13 +556,13 @@ public class WriteExcel extends HttpServlet {
 		
 	}
 	/****************************************************************************************************************************************************/
-	public static void doInvoiceStatement(XSSFWorkbook workbook, String tab, List<Pair<ContractData, List<AssetData> >> rtnPair, String dateStamp ) throws IOException {
+	public static void doInvoiceStatement(XSSFWorkbook workbook, String tab, List<Pair<ContractData, List<AssetData> >> rtnPair, String dateStamp, ArrayList<String> ageArr ) throws IOException {
 
 		
 		int listArrSZ = rtnPair.size();
-		 ContractData contractData = new ContractData();
-		 AssetData assets = new AssetData();
-		 XSSFSheet sheet1 = workbook.getSheet(tab);
+		ContractData contractData = new ContractData();
+		AssetData assets = new AssetData();
+		XSSFSheet sheet1 = workbook.getSheet(tab);
 		// Sheet mySheet = wb.getSheetAt(0);
 		String contractID = "";
 		String agreementNum = "";
@@ -574,7 +577,7 @@ public class WriteExcel extends HttpServlet {
 		String effDate = "";
 		double buy = 0.00;
 		String dFmt = Olyutil.formatDate(dateStamp, "yyyy-MM-dd", "MMMM dd, yyyy");
-		
+		String[] lineArr = null;
 		
 		if (listArrSZ > 0) {	
 			//System.out.println("*** listArrSZ=" + listArrSZ);
@@ -583,6 +586,7 @@ public class WriteExcel extends HttpServlet {
 			
 			for (int i = 0; i < listArrSZ; i++ ) {
 				contractData = rtnPair.get(i).getLeft();
+				contractID = contractData.getContractID();
 				agreementNum = contractData.getCustomerID();
 				effDate = contractData.getEffectiveDate();
 				custName = contractData.getCustomerName();
@@ -607,7 +611,7 @@ public class WriteExcel extends HttpServlet {
 			 
 			row = sheet1.getRow(18);
 			cell = row.getCell(2);
-			cell.setCellValue(dFmt2);
+			cell.setCellValue(effDate);
 			row = sheet1.getRow(18);
 			cell = row.getCell(3);
 			cell.setCellValue("Buyout Payment");
@@ -656,49 +660,53 @@ public class WriteExcel extends HttpServlet {
 			
 			cell.setCellValue(Olyutil.decimalfmt(contractData.getBuyOut(), "$###,##0.00"));
 			//sheet1.addMergedRegion(new CellRangeAddress(40, 41, 4, 4));
-			// display assets
-			for (int i = 0; i < listArrSZ; i++ ) {
-				int rtnArrSZ = rtnPair.get(i).getRight().size();
-				List<AssetData> assetList = new ArrayList<AssetData>();
-				assetList	= rtnPair.get(i).getRight();
-				//System.out.println("<h5> listArrSZ =" + listArrSZ + " -- rtnArrSZ=" +  rtnArrSZ + "--</h5>");
-				int k = 19;
-				for (int j = 0; j < rtnArrSZ; j++ ) {
-					if ( k < 35) {
-						 
-					 
-					AssetData asset = new AssetData();
-					asset = assetList.get(j);
-					System.out.println("***^^^*** AssetReturn:" + 
-							"K=" + k
-							+ " -- AssetID="     + asset.getAssetId() 
-							+ " -- EquipmentType=" + asset.getEquipType() 
-							+ " -- BuyPrice="     + asset.getBuyPrice()
-							+ " -- RollPrice="     + asset.getRollPrice()
-							+ " -- RtnPrice="     + asset.getRtnPrice()
-							+ "--");
+			int k = 19;
+			int zz = 0;
+			double amt = 0.00;
+			int ageArrSZ = ageArr.size();
+			// ********************* Begin display assets
+			for (int m = 0; m < ageArrSZ; m++ ) {
+				zz = m;
+				lineArr = Olyutil.splitStr(ageArr.get(m), ";");
 				
+				
+				if (contractID.equals(lineArr[0])) {
+					/* System.out.println("***^^^*** LineArr:" + 
+							"M=" + m
+							+ " -- ID="     + contractID 
+							+ " -- invoice=" + lineArr[6]
+							+ " -- Date="     + lineArr[5]
+							+ " -- amt="     + lineArr[4]							 
+							+ "--");  */
+					amt = Olyutil.strToDouble(lineArr[4]);
 					row = sheet1.getRow(k);
 					cell = row.getCell(1);
-					cell.setCellValue( asset.getAssetId());
+					cell.setCellValue(lineArr[6]);
 					
 					cell = row.getCell(2);
-					cell.setCellValue( "TBD");
+					cell.setCellValue( lineArr[5]);
 					
 					cell = row.getCell(3);
-					cell.setCellValue( asset.getEquipType());
+					cell.setCellValue( "");
 					
 					cell = row.getCell(4);
-					cell.setCellValue( asset.getBuyPrice());
-					
-					
-					}
+					cell.setCellValue( Olyutil.decimalfmt(amt, "$###,##0.00"));
 					
 					k++;
+					
 				}
+				
+				
+				
 			}
 			
-		}
+			//System.out.println("***^^^*** End Invoice code  M=" + zz + " -- SZ=" + ageArrSZ);
+			
+			
+			
+			// ********************* End display assets
+			
+		} // end if SZ
 		
 	}
 	
@@ -711,71 +719,76 @@ public class WriteExcel extends HttpServlet {
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 			HttpSession session = req.getSession();
-			String contractHeaderFile = "C:\\Java_Dev\\props\\headers\\NBVA_ContractHrd.txt";
-			String headerFile = "C:\\Java_Dev\\props\\headers\\NBVA_AssetHrdExcel.txt";
-			XSSFWorkbook workbook = null;
-			XSSFSheet sheet = null;
 			Date date = Olyutil.getCurrentDate();
 			String dateStamp = date.toString();
 			ArrayList<String> assetHeaderArr = new ArrayList<String>();
-			assetHeaderArr = Olyutil.readInputFile(headerFile);
+			ArrayList<String> ageArr = new ArrayList<String>();
+			String contractHeaderFile = "C:\\Java_Dev\\props\\headers\\NBVA_ContractHrd.txt";
+			String headerFile = "C:\\Java_Dev\\props\\headers\\NBVA_AssetHrdExcel.txt";
+			String ageFile = "C:\\Java_Dev\\props\\nbvaupdate\\dailyAge.csv";
 			String FILE_NAME = "NBVA_Asset_List_Report_" + dateStamp + ".xlsx";
-			
-			String excelTemplate = "C:\\Java_Dev\\props\\nbvaupdate\\excelTemplates\\letter.xlsx";
-			//String excelTemplateNew = "C:\\Java_Dev\\props\\nbvaupdate\\excelTemplates\\letterNew.xlsx"; 
-			String tab1 = "Buyout_Letter";
-			 workbook = new XSSFWorkbook(new FileInputStream(excelTemplate));
-			FileOutputStream fileOut = new FileOutputStream(FILE_NAME);
-			//String excelTemplateNew = "NBVA_BuyOut_Letter_" + dateStamp + ".xlsx"; 
+			String excelTemplate = "C:\\Java_Dev\\props\\nbvaupdate\\excelTemplates\\letter.xlsx";		
+			XSSFWorkbook workbook = null;
+			XSSFSheet sheet = null;
 			
 			
-			
-			ArrayList<String> contractHeaderArr = new ArrayList<String>();
-			contractHeaderArr = Olyutil.readInputFile(contractHeaderFile);
-			 List<Pair<ContractData, List<AssetData> >> list = (List<Pair<ContractData, List<AssetData> >>) session.getAttribute("rtnPair");
-			
-			//strArr = (ArrayList<String>) session.getAttribute("strArr");
-			 doBuyoutLetter( workbook, FILE_NAME, tab1, excelTemplate, dateStamp, list );
-			 
-			 
-			 //XSSFSheet sheet2 = getWorkSheet(workbook, "Buyout_Invoice");
-			 doBuyoutInvoice(workbook, "Buyout_Invoice", list, dateStamp );
-			 doInvoiceStatement(workbook, "Buyout_Statement", list, dateStamp );
-			//workbook = newWorkbook();
-			sheet = newWorkSheet(workbook, "Asset List Report");
-			contractHeader(workbook, sheet, contractHeaderArr);
-			
-			assetHeader(workbook, sheet, assetHeaderArr);
-			loadWorkSheetContracts(workbook, sheet, list);
-			loadWorkSheetAssets(workbook, sheet, list);
-			//System.out.println("** Call loadWorkSheet");
-			//WriteExcel.loadWorkSheet(workbook, sheet, strArr, 1, ";");
-			//BufferedInputStream in = null; 
-			
-			
-			
-			try {
-				// HttpServletResponse response = getResponse(); // get ServletResponse
-				res.setContentType("application/vnd.ms-excel"); // Set up mime type
-				res.addHeader("Content-Disposition", "attachment; filename=" + FILE_NAME);
-				OutputStream out2 = res.getOutputStream();
-				workbook.write(out2);
-				out2.flush();
+		assetHeaderArr = Olyutil.readInputFile(headerFile);
 
-			//********************************************************************************************************************************
-			
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-				try {
-					workbook.close();
-				} catch (Exception ee) {
-					ee.printStackTrace();
-				}
+		String tab1 = "Buyout_Letter";
+		workbook = new XSSFWorkbook(new FileInputStream(excelTemplate));
+		FileOutputStream fileOut = new FileOutputStream(FILE_NAME);
+		// String excelTemplateNew = "NBVA_BuyOut_Letter_" + dateStamp + ".xlsx";
+
+		ageArr = Olyutil.readInputFile(ageFile);
+		// Olyutil.printStrArray(ageArr);
+
+		ArrayList<String> contractHeaderArr = new ArrayList<String>();
+		contractHeaderArr = Olyutil.readInputFile(contractHeaderFile);
+		List<Pair<ContractData, List<AssetData>>> list = (List<Pair<ContractData, List<AssetData>>>) session
+				.getAttribute("rtnPair");
+
+		// strArr = (ArrayList<String>) session.getAttribute("strArr");
+		doBuyoutLetter(workbook, FILE_NAME, tab1, excelTemplate, dateStamp, list);
+
+		// XSSFSheet sheet2 = getWorkSheet(workbook, "Buyout_Invoice");
+		doBuyoutInvoice(workbook, "Buyout_Invoice", list, dateStamp);
+		doInvoiceStatement(workbook, "Buyout_Statement", list, dateStamp, ageArr);
+		//System.out.println("** Call contractHeader");
+		// workbook = newWorkbook();
+		sheet = newWorkSheet(workbook, "Asset List Report");
+		contractHeader(workbook, sheet, contractHeaderArr);
+
+		assetHeader(workbook, sheet, assetHeaderArr);
+		//System.out.println("** Call loadWorkSheetContracts");
+		loadWorkSheetContracts(workbook, sheet, list);
+		//System.out.println("** Call loadWorkSheetAssets");
+		loadWorkSheetAssets(workbook, sheet, list);
+		System.out.println("** Call Write Excel");
+		// System.out.println("** Call loadWorkSheet");
+		// WriteExcel.loadWorkSheet(workbook, sheet, strArr, 1, ";");
+		// BufferedInputStream in = null;
+
+		try {
+			// HttpServletResponse response = getResponse(); // get ServletResponse
+			res.setContentType("application/vnd.ms-excel"); // Set up mime type
+			res.addHeader("Content-Disposition", "attachment; filename=" + FILE_NAME);
+			OutputStream out2 = res.getOutputStream();
+			workbook.write(out2);
+			out2.flush();
+
+			// ********************************************************************************************************************************
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				workbook.close();
+			} catch (Exception ee) {
+				ee.printStackTrace();
 			}
 		}
-	
+	}
 
 }
