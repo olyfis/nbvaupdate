@@ -324,7 +324,7 @@ public void  buildCellsContract( JspWriter out, ContractData contract, String fo
 	//out.println("</form> </td></tr></table>");
 	
 	out.println( "  </td></tr>");
-	System.out.println("*** boDate=" + contract.getBuyoutDate() + "--");
+	//System.out.println("*** boDate=" + contract.getBuyoutDate() + "--");
 }
 
 /*************************************************************************************************************************************************************/

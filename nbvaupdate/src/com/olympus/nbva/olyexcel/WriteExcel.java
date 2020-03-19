@@ -471,7 +471,7 @@ public class WriteExcel extends HttpServlet {
 
 		if (listArrSZ > 0) {
 
-				System.out.println("*** listArrSZ=" + listArrSZ);
+			//System.out.println("*** listArrSZ=" + listArrSZ);
 			 for (int i = 0; i < listArrSZ; i++) {
 				contractData = rtnPair.get(i).getLeft();
 				contractID = contractData.getContractID();
@@ -558,6 +558,7 @@ public class WriteExcel extends HttpServlet {
 		
 		int listArrSZ = rtnPair.size();
 		 ContractData contractData = new ContractData();
+		 AssetData assets = new AssetData();
 		 XSSFSheet sheet1 = workbook.getSheet(tab);
 		// Sheet mySheet = wb.getSheetAt(0);
 		String contractID = "";
@@ -655,6 +656,48 @@ public class WriteExcel extends HttpServlet {
 			
 			cell.setCellValue(Olyutil.decimalfmt(contractData.getBuyOut(), "$###,##0.00"));
 			//sheet1.addMergedRegion(new CellRangeAddress(40, 41, 4, 4));
+			// display assets
+			for (int i = 0; i < listArrSZ; i++ ) {
+				int rtnArrSZ = rtnPair.get(i).getRight().size();
+				List<AssetData> assetList = new ArrayList<AssetData>();
+				assetList	= rtnPair.get(i).getRight();
+				//System.out.println("<h5> listArrSZ =" + listArrSZ + " -- rtnArrSZ=" +  rtnArrSZ + "--</h5>");
+				int k = 19;
+				for (int j = 0; j < rtnArrSZ; j++ ) {
+					if ( k < 35) {
+						 
+					 
+					AssetData asset = new AssetData();
+					asset = assetList.get(j);
+					System.out.println("***^^^*** AssetReturn:" + 
+							"K=" + k
+							+ " -- AssetID="     + asset.getAssetId() 
+							+ " -- EquipmentType=" + asset.getEquipType() 
+							+ " -- BuyPrice="     + asset.getBuyPrice()
+							+ " -- RollPrice="     + asset.getRollPrice()
+							+ " -- RtnPrice="     + asset.getRtnPrice()
+							+ "--");
+				
+					row = sheet1.getRow(k);
+					cell = row.getCell(1);
+					cell.setCellValue( asset.getAssetId());
+					
+					cell = row.getCell(2);
+					cell.setCellValue( "TBD");
+					
+					cell = row.getCell(3);
+					cell.setCellValue( asset.getEquipType());
+					
+					cell = row.getCell(4);
+					cell.setCellValue( asset.getBuyPrice());
+					
+					
+					}
+					
+					k++;
+				}
+			}
+			
 		}
 		
 	}

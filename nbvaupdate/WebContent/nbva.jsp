@@ -19,7 +19,10 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
  
-<!--  	101-0009442-019-->
+<!--  	
+http://cvyhj3a27:8181/nbvaupdate/nbvaupdate?id=101-0010311-004&eDate=2020-03-10&boDate=2020-03-31&invoice=123123123
+
+101-0009442-019-->
 
 <title><%=title%></title>
 

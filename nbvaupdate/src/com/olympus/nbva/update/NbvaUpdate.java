@@ -127,6 +127,20 @@ public class NbvaUpdate extends HttpServlet {
 	/****************************************************************************************************************************************************/
 	public static AssetData loadAssetObj(String[] line) {
 		AssetData asset = new AssetData();
+		double equipCost = Olyutil.strToDouble(line[20]);
+		double residual = Olyutil.strToDouble(line[19]);
+		String desc = line[10];
+		
+		if (desc.equals("EUA") || desc.equals("B/O")) {
+			System.out.println("***^^^*** AssetData: Desc="  +  desc );
+			if (residual == 0.00 || equipCost == 0.00) {
+				System.out.println("***^^^*** AssetData: residual="  +  residual  + " -- EC=" + equipCost);
+				asset = null;
+				return(asset);
+			}
+			
+		}
+		
 		 //System.out.println("*** AssetData:" + line.toString() );
 		//System.out.println("***^^^*** AssetData: L22="  +  line[22] + "-- Fmt" + Olyutil.strToInteger(line[22] ) );
 		//System.out.println("***^^^*** AssetData: L11="  +  line[11] + "--"   );
@@ -135,7 +149,7 @@ public class NbvaUpdate extends HttpServlet {
 		 asset.setAssetId(Olyutil.strToLong(line[7]));
 		 asset.setEquipType(line[8]); 
 		 //asset.setCustomerID(line[9]); 
-		 asset.setEquipDesc(line[10]); 
+		 asset.setEquipDesc(desc); 
 		 asset.setModel(line[11]); 
 		 asset.setSerNum(line[12]); 
 		 asset.setQty(Olyutil.strToInteger(line[13])); 
@@ -144,8 +158,11 @@ public class NbvaUpdate extends HttpServlet {
 		 asset.setEquipCity(line[16]); 
 		 asset.setEquipState(line[17]);
 		 asset.setEquipZip(line[18]); 
-		 asset.setResidAmt(Olyutil.strToDouble(line[19]));
-		 asset.setEquipCost(Olyutil.strToDouble(line[20]));
+		 
+		 asset.setResidAmt(residual);
+		 
+		 asset.setEquipCost(equipCost);
+		 
 		 asset.setaRentalAmt(Olyutil.strToDouble(line[21]));
 		 asset.setDispCode(Olyutil.strToInteger(line[22])); 
 		 //asset.setTermDate( line[23]); 
@@ -198,7 +215,9 @@ public class NbvaUpdate extends HttpServlet {
 			 //System.out.println("i=" + i + " -- Value=" + strSplitArr[i]);  
 			if (i == 0) { // get Contract data
 				contract = loadContractObj(strSplitArr, effDate, boDate, invoice);
-				asset = loadAssetObj(strSplitArr);
+				
+					asset = loadAssetObj(strSplitArr);
+				 
 				if (strSplitArr[24].equals("03")) { 
 					contractStat = true;
 					//System.out.println("*** SC" + strSplitArr[24] + "--");
@@ -211,7 +230,10 @@ public class NbvaUpdate extends HttpServlet {
 				asset = loadAssetObj(strSplitArr);
 			}
 			// Calculate floorPrice
-			assets.add(asset);			
+			if (asset != null) {
+				
+				assets.add(asset);	
+			}
 		}
 		//org.apache.commons.lang3.tuple.MutablePair<ContractData, List<AssetData>> p = org.apache.commons.lang3.tuple.MutablePair.of(contract, assets);
 		//
