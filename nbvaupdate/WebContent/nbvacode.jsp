@@ -19,7 +19,10 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
  
-<!--  	101-0009442-019-->
+<!--  	
+http://cvyhj3a27:8181/nbvaupdate/nbvaupdate?id=101-0010311-004&eDate=2020-03-10
+
+101-0009442-019-->
 
 <title><%=title%></title>
 
@@ -131,7 +134,7 @@ function ajaxFunction(){
 <BR>
 
 
-	<form name="actionform" method="get" action="nbvaupdate" name=id'>
+	<form name="actionform" method="get" action="nbvacode" name=id'>
 
 <BR>
 
@@ -193,7 +196,7 @@ function ajaxFunction(){
   
    </td>
   </tr>
-  
+  <!-- 
   <tr>
   <td width="20" valign="bottom"> <b>Buyout Date:</b> </td> 
   <td width="20" valign="bottom"> 
@@ -204,8 +207,23 @@ function ajaxFunction(){
   
    </td>
   </tr>
-  
+    -->
   <!-- ********************************************************************************************************************************************************* -->
+       <!-- 
+     <tr>
+ 
+  <td width="20" valign="bottom"> <b>Enter Invoice Number:</b> </td> 
+  <td width="20" valign="bottom">  
+   
+      <CENTER>  <input name="invoice" type="text"   /> </CENTER>
+     
+  </td>
+  </tr>
+     -->
+     
+     <!-- ********************************************************************************************************************************************************* -->
+     
+     
      <tr>
   <td width="20" valign="bottom" COLSPAN="2">  &nbsp</td> 
    

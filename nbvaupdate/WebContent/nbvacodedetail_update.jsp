@@ -22,7 +22,8 @@
 	HashMap<String, String> map = new HashMap<String, String>();
 	int mthRem = (int) session.getAttribute("mthRem");
 	String termPlusSpan =  (String) session.getAttribute("termPlusSpan");
-	DecimalFormat df = new DecimalFormat("$###,###.##");
+	//DecimalFormat df = new DecimalFormat("$###,##0.00");
+	String opt =  (String) session.getAttribute("opt");
 %>
 
 <!DOCTYPE html>
@@ -80,8 +81,8 @@ $(function() {
 	var call = function(id){
 		var myID = document.getElementById(id).value;
 		//alert("****** myID=" + myID + " ID=" + id);		 
-			//window.open("http://cvyhj3a27:8181/nbva/kitdata?key=" + myID);
-		window.open("http://localhost:8181/nbva/kitdata?key=" + myID);
+			//window.open("http://cvyhj3a27:8181/nbvaupdate/kitdata?key=" + myID);
+		window.open("http://localhost:8181/nbvaupdate/kitdata?key=" + myID);
 				
 				
 	}
@@ -242,6 +243,10 @@ public void  buildCellsContract( JspWriter out, ContractData contract, String fo
 	out.println( "<td  width=\"70%\"  >" + contract.getCustomerName() + "</td></tr>");
 	
 	out.println("<tr>");
+	out.println("<th class=\" " + style + "  \" >Customer ID</th>");
+	out.println( "<td  width=\"70%\"  >" + contract.getCustomerID() + "</td></tr>");
+	
+	out.println("<tr>");
 	out.println("<th class=\" " + style + "  \" >Effective Date</th>");
 	out.println( "<td class=\"a\">" + contract.getEffectiveDate() + "</td></tr>");
 	
@@ -283,16 +288,16 @@ public void  buildCellsContract( JspWriter out, ContractData contract, String fo
 	out.println( "<td class=\"a\">" + contract.getServicePayment() + "</td></tr>");
 	
 	out.println("<tr>");
-	out.println("<th class=\" " + style + "  \" >Generate Buyout</th>");
-	out.println( "<td class=\"a\"> TBD"   + "</td></tr>");
+	out.println("<th class=\" " + style + "  \" >Contract Buyout</th>");
+	out.println( "<td class=\"a\">" +    Olyutil.decimalfmt(contract.getBuyOut(), "$###,##0.00")  + "</td></tr>");
 	
 	out.println("<tr>");
-	out.println("<th class=\" " + style + "  \" >Generate Rollover</th>");
-	out.println( "<td class=\"a\"> TBD"   + "</td></tr>");
+	out.println("<th class=\" " + style + "  \" >Contract Rollover</th>");
+	out.println( "<td class=\"a\">" + Olyutil.decimalfmt(contract.getRollTotal(), "$###,##0.00")   + "</td></tr>");
 	
 	out.println("<tr>");
-	out.println("<th class=\" " + style + "  \" >Generate Returns</th>");
-	out.println( "<td class=\"a\"> TBD"   + "</td></tr>");
+	out.println("<th class=\" " + style + "  \" >Contract Returns</th>");
+	out.println( "<td class=\"a\">" + Olyutil.decimalfmt(contract.getRtnTotal(), "$###,##0.00")  + "</td></tr>");
 	
 	out.println("<tr>");
 	out.println("<th class=\" " + style + "  \" >Invoice Code</th>");
@@ -308,18 +313,18 @@ public void  buildCellsContract( JspWriter out, ContractData contract, String fo
 	
 	
 	
- 
-	//out.println("<tr>");
-	//out.println("<th class=\" " + style + "  \" >Save as Excel File</th>");	
-	//out.println( "<td class=\"a\"> ");
-	//out.println(" <form name=\"excelForm\"    enctype=\"multipart/form-data\"   method=\"get\" action=" +   formUrl  +  " >    ");
-	//out.println("<input type=\"submit\" value=\"Save Excel File\" class=\"btn\" /> ");
-	
+ /*
+	out.println("<tr>");
+	out.println("<th class=\" " + style + "  \" >Save as Excel File <br> May take a while to build file.</th>");	
+	out.println( "<td class=\"a\"> ");
+	out.println(" <form name=\"excelForm\"    enctype=\"multipart/form-data\"   method=\"get\" action=" +   formUrl  +  " >    ");
+ 	out.println("<input type=\"submit\" value=\"Save Excel File\" class=\"btn\" /> ");
+	*/
 	out.println("</table>");
 	//out.println("</form> </td></tr></table>");
 	
 	out.println( "  </td></tr>");
-	
+	//System.out.println("*** boDate=" + contract.getBuyoutDate() + "--");
 }
 
 /*************************************************************************************************************************************************************/
@@ -335,7 +340,7 @@ public static void displayObj(Object obj) throws IOException, IllegalAccessExcep
 
 }
 /*************************************************************************************************************************************************************/
-public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List<Pair<ContractData, List<AssetData> >> rtnPair  ) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List<Pair<ContractData, List<AssetData> >> rtnPair, String opt  ) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 	DecimalFormat df = new DecimalFormat("$###,##0.00");
 	String cells = "";
 	String xDataItem = null;
@@ -346,9 +351,9 @@ public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List
 	String excel = null;
 	String rowColor = null;
 	String model = "";
-	 
-	String formUrlValue = "/nbvadetail_flex.jsp" ;
 	
+	//String formUrlValue = "/nbvadetail_flex.jsp" ;
+	String formUrlValue = "/nbvadetail_update.jsp" ;
 	int listArrSZ = rtnPair.size();
 	if (listArrSZ > 0) {	
 		for (int i = 0; i < listArrSZ; i++ ) {
@@ -368,7 +373,7 @@ public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List
 				cells +="<tr bgcolor=" + rowColor + ">";
 				cells +="<TD>" + asset.getAssetId() + "</td> ";
 				cells +="<TD>" + asset.getEquipType() + "</td> ";
-				cells +="<TD>" + asset.getCustomerID() + "</td> ";
+				//cells +="<TD>" + asset.getCustomerID() + "</td> ";
 				cells +="<TD>" + asset.getEquipDesc() + "</td> ";
 				if(hm.containsKey(model)){
 		           // System.out.println("The hashmap contains value:" + model);
@@ -412,9 +417,9 @@ public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List
 				cells +="<TD>" + rentalAmt_df+ "</td>  ";
 			 
 				
-				cells +="<TD>" + asset.getDispCode() + "</td>  ";
+				//cells +="<TD>" + asset.getDispCode() + "</td>  ";
 				
-				/*
+				
 				
 				// Drop down for future use
 				 cells +="  <form enctype=\"multipart/form-data\" method=\"get\" > ";
@@ -435,26 +440,28 @@ public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List
 					cells +="<option value=\"2\">Return</option>  ";
 					cells +=" </select> </td> ";
 				
-				*/
+					/*	
 	 
 				String fp  = Olyutil.decimalfmt(asset.getFloorPrice(), "$###,##0.00");
 				
+			 
+				
 				//cells +="<TD>" + asset.getTermDate() + "</td> ";
 				
-				String roll  = "TBD";
-				String buy  = "TBD";
-				String rtn  = "TBD";
+				String roll  = Olyutil.decimalfmt(asset.getRollPrice(), "$###,##0.00");
+				String buy  = Olyutil.decimalfmt(asset.getBuyPrice(), "$###,##0.00");
+				String rtn  = Olyutil.decimalfmt(asset.getRtnPrice(), "$###,##0.00");
 				
 				
 				cells +="<TD>" + roll  + "</td> ";
 				cells +="<TD>" + buy  + "</td> ";
 				cells +="<TD>" + rtn  + "</td> ";
 				
-				cells +="<TD>" + fp  + "</td> ";
+				//cells +="<TD>" + fp  + "</td> ";
 				
+				cells +="<TD>" + opt  + "</td> ";
 				
-				
-				
+				*/
 				
 				
 				
@@ -513,7 +520,7 @@ public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List
 	String filePath = "C:\\Java_Dev\\props\\headers\\NBVA_ContractHrd.txt";
 	ArrayList<String> headerArr = readHeader(filePath);
   
-	String filePath2 = "C:\\Java_Dev\\props\\headers\\NBVA_AssetHrd.txt";
+	String filePath2 = "C:\\Java_Dev\\props\\headers\\NBVA_AssetHrdCode.txt";
 	ArrayList<String> headerArr2 = readHeader(filePath2);
 	kitArr = getKitData(kitFileName);
 	map = getKitHash(kitArr);
@@ -625,7 +632,7 @@ out.println("</form> </td></tr></table>");
 		out.println(header2);
 		out.println("</tr></thead>");
 		out.println("<tbody id=\"report\">");
-		out.println(buildCellsAsset(map, out, list)); // build data cells from file
+		out.println(buildCellsAsset(map, out, list, opt)); // build data cells from file
 		
 		out.println("</tbody></table><BR>"); // Close Table
 	
