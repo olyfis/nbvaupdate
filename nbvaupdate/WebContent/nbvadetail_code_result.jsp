@@ -24,6 +24,7 @@
 	String termPlusSpan =  (String) session.getAttribute("termPlusSpan");
 	//DecimalFormat df = new DecimalFormat("$###,##0.00");
 	String opt =  (String) session.getAttribute("opt");
+	System.out.println("*** IN RESULT JSP");
 %>
 
 <!DOCTYPE html>
@@ -282,7 +283,7 @@ public void  buildCellsContract( JspWriter out, ContractData contract, String fo
 	out.println("<tr>");
 	out.println("<th class=\" " + style + "  \" >Equipment Payment</th>");
 	out.println( "<td class=\"a\">" + equipPayment_df + "</td></tr>");
-	/*
+	
 	out.println("<tr>");
 	out.println("<th class=\" " + style + "  \" >Service Payment</th>");	
 	out.println( "<td class=\"a\">" + contract.getServicePayment() + "</td></tr>");
@@ -298,7 +299,7 @@ public void  buildCellsContract( JspWriter out, ContractData contract, String fo
 	out.println("<tr>");
 	out.println("<th class=\" " + style + "  \" >Contract Returns</th>");
 	out.println( "<td class=\"a\">" + Olyutil.decimalfmt(contract.getRtnTotal(), "$###,##0.00")  + "</td></tr>");
-	*/
+	
 	out.println("<tr>");
 	out.println("<th class=\" " + style + "  \" >Invoice Code</th>");
 	out.println( "<td class=\"a\">"  + contract.getInvoiceCode() + "</td></tr>");
@@ -313,13 +314,13 @@ public void  buildCellsContract( JspWriter out, ContractData contract, String fo
 	
 	
 	
- /*
+ 
 	out.println("<tr>");
 	out.println("<th class=\" " + style + "  \" >Save as Excel File <br> May take a while to build file.</th>");	
 	out.println( "<td class=\"a\"> ");
 	out.println(" <form name=\"excelForm\"    enctype=\"multipart/form-data\"   method=\"get\" action=" +   formUrl  +  " >    ");
  	out.println("<input type=\"submit\" value=\"Save Excel File\" class=\"btn\" /> ");
-	*/
+	
 	out.println("</table>");
 	//out.println("</form> </td></tr></table>");
 	
@@ -340,7 +341,7 @@ public static void displayObj(Object obj) throws IOException, IllegalAccessExcep
 
 }
 /*************************************************************************************************************************************************************/
-public String  buildCellsAsset_ORIG( HashMap<String, String> hm, JspWriter out,  List<Pair<ContractData, List<AssetData> >> rtnPair, String opt  ) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List<Pair<ContractData, List<AssetData> >> rtnPair, String opt  ) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 	DecimalFormat df = new DecimalFormat("$###,##0.00");
 	String cells = "";
 	String xDataItem = null;
@@ -351,8 +352,7 @@ public String  buildCellsAsset_ORIG( HashMap<String, String> hm, JspWriter out, 
 	String excel = null;
 	String rowColor = null;
 	String model = "";
-	String[] dispArr = null;
-	String selName = "";
+	int newCode = 109;
 	//String formUrlValue = "/nbvadetail_flex.jsp" ;
 	String formUrlValue = "/nbvadetail_update.jsp" ;
 	int listArrSZ = rtnPair.size();
@@ -362,7 +362,6 @@ public String  buildCellsAsset_ORIG( HashMap<String, String> hm, JspWriter out, 
 			List<AssetData> assetList = new ArrayList<AssetData>();
 			assetList	= rtnPair.get(i).getRight();
 			//out.println("<h5> listArrSZ =" + listArrSZ + " -- rtnArrSZ=" +  rtnArrSZ + "--</h5>");
-			int n = 0;
 			for (int j = 0; j < rtnArrSZ; j++ ) {
 				AssetData asset = new AssetData();
 				asset = assetList.get(j);
@@ -374,6 +373,8 @@ public String  buildCellsAsset_ORIG( HashMap<String, String> hm, JspWriter out, 
 				rowColor = (j % 2 == 0) ? rowEven : rowOdd;
 				cells +="<tr bgcolor=" + rowColor + ">";
 				cells +="<TD>" + asset.getAssetId() + "</td> ";
+				cells +="<TD>" + asset.getDispCode() + "</td> ";
+				
 				cells +="<TD>" + asset.getEquipType() + "</td> ";
 				//cells +="<TD>" + asset.getCustomerID() + "</td> ";
 				cells +="<TD>" + asset.getEquipDesc() + "</td> ";
@@ -421,11 +422,11 @@ public String  buildCellsAsset_ORIG( HashMap<String, String> hm, JspWriter out, 
 				
 				//cells +="<TD>" + asset.getDispCode() + "</td>  ";
 				
-				
+				/*
 				
 				// Drop down for future use
-				 cells +="  <form enctype=\"multipart/form-data\" method=\"POST\" action=\"/nbvaupdate/nbvamod\" > ";
-				// cells +="<TD>  <input type=\"text\" name=\" dispCode\"    value=\"" + asset.getDispCode() + "\">  </td> ";
+				 cells +="  <form enctype=\"multipart/form-data\" method=\"get\" > ";
+				//cells +="<TD>  <input type=\"text\" name=\" dispCode\"    value=\"" + asset.getDispCode() + "\">  </td> ";
 					String code = "";
 					if (asset.getDispCode() == 0) {
 						code = "Rollover";
@@ -434,21 +435,15 @@ public String  buildCellsAsset_ORIG( HashMap<String, String> hm, JspWriter out, 
 					} else if (asset.getDispCode() == 2 ) { 
 						code = "Return";
 					}
-					 
-					 //cells +="<TD> 	<select  name=\"dispCodeArr_\""   + n++  + "  \" > "; 
-					
-					//cells +="<TD> 	<select  name=\"dispCodeArr > "; 
-					
-					cells +="<TD> 	<select  name=\"dispCodeArr_\""   + asset.getAssetId()  + "  \" > "; 
+				
+					cells +="<TD> 	<select  name=\"dispCode\" > "; 
 					cells +="<option value=\" " + asset.getDispCode() + " \" selected    > " +code+    " </option>  ";
-					
-					
 					cells +="<option value=\"0\">Rollover</option>  ";
 					cells +="<option value=\"1\">Buyout</option>  ";
 					cells +="<option value=\"2\">Return</option>  ";
 					cells +=" </select> </td> ";
 				
-					/*	
+				
 	 
 				String fp  = Olyutil.decimalfmt(asset.getFloorPrice(), "$###,##0.00");
 				
@@ -484,10 +479,9 @@ public String  buildCellsAsset_ORIG( HashMap<String, String> hm, JspWriter out, 
  
  			}
 		}
-		cells +="<TR><TD COLSPAN=\"17\" align=\"center\">           </td></tr>  ";
-		cells +="<input type=\"hidden\" id=\"multipleSelectValues\" name=\"multipleSelectValues\" /> ";
-		cells +="<TR><TD COLSPAN=\"17\" align=\"center\">  <input type=\"Submit\" name=\" dispCode\"   value=\" Update\"   >      </td></tr>";
-		cells +=" </form>";
+		cells +="<TR><TD COLSPAN=\"17\" align=\"center\">     >      </td></tr> </form>";
+		//cells +="<TR><TD COLSPAN=\"17\" align=\"center\">  <input type=\"Submit\" name=\" dispCode\"   value=\" Update\"   >      </td></tr> </form>";
+	
  	}
 		
 	return(cells);
@@ -515,81 +509,6 @@ public String  buildCellsAsset_ORIG( HashMap<String, String> hm, JspWriter out, 
 	}
 
 /*************************************************************************************************************************************************************/
-public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List<Pair<ContractData, List<AssetData> >> rtnPair, String opt  ) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-	DecimalFormat df = new DecimalFormat("$###,##0.00");
-	String cells = "";
-	String xDataItem = null;
-	String color1 = "plum";
-	String style1 = "font-family: sans-serif; color: white;";
-	String rowEven = "#D7DBDD";
-	String rowOdd = "AEB6BF";
-	String excel = null;
-	String rowColor = null;
-	String model = "";
-	String[] dispArr = null;
-	int n = 0;
-	//String formUrlValue = "/nbvadetail_flex.jsp" ;
-	String formUrlValue = "/nbvadetail_update.jsp" ;
-	int listArrSZ = rtnPair.size();
-	if (listArrSZ > 0) {
-		cells +="  <form enctype=\"multipart/form-data\" method=\"GET\" action=\"/nbvaupdate/nbvamod\" > ";
-		for (int i = 0; i < listArrSZ; i++ ) {
-			int rtnArrSZ = rtnPair.get(i).getRight().size();
-			List<AssetData> assetList = new ArrayList<AssetData>();
-			assetList	= rtnPair.get(i).getRight();
-			//out.println("<h5> listArrSZ =" + listArrSZ + " -- rtnArrSZ=" +  rtnArrSZ + "--</h5>");
-			
-			for (int j = 0; j < rtnArrSZ; j++ ) {
-				AssetData asset = new AssetData();
-				asset = assetList.get(j);
-				//System.out.println("*** AssetReturn: EquipmentType=" + asset.getEquipType() + "--");
-				//System.out.println("*** AssetReturn: CustomerID=" + asset.getCustomerID() + "--");
-				model = asset.getModel();
-				//System.out.println("*** AssetReturn: Model ->" + model + "--");
-				
-				rowColor = (j % 2 == 0) ? rowEven : rowOdd;
-				cells +="<tr bgcolor=" + rowColor + ">";
-				cells +="<TD>" + asset.getAssetId() + "</td> ";
-				
-				
-				String code = "";
-				if (asset.getDispCode() == 0) {
-					code = "Rollover";
-				} else if (asset.getDispCode() == 1 ) { 
-					code = "Buyout";
-				} else if (asset.getDispCode() == 2 ) { 
-					code = "Return";
-				}
-			
-				 //cells +="<TD> 	<select  name=\"dispCodeArr_"  + n++  + "\" > "; 
-				// cells +="<TD> 	<select  name=\"dispCodeArr_"  + n  + "\"   id=\"dispCodeArr_"  + n  + "\"             > "; 
-				
-				 cells +="<TD> 	<select  name=\"dispCodeArr_"   + Long.toString(asset.getAssetId() )  + "\"  > "; 
-				  n++;
-				cells +="<option value=\"" + asset.getDispCode() + "\" selected    > " +code+    " </option>  ";
-				
-				
-				cells +="<option value=\"0\">Rollover</option>  ";
-				cells +="<option value=\"1\">Buyout</option>  ";
-				cells +="<option value=\"2\">Return</option>  ";
-				cells +=" </select> </td> ";
-				
-				
-				cells +="<TD>" + asset.getEquipType() + "</td> ";
-				
-				
-				
-			}
-		}
-		cells +="<TR><TD COLSPAN=\"17\" align=\"center\">           </td></tr>  ";
-		cells +="<input type=\"hidden\" id=\"num\" name=\"num\"  value=" +  n + "> ";
-		cells +="<TR><TD COLSPAN=\"17\" align=\"center\">  <input type=\"Submit\" name=\" dispCode\"   value=\" Update\"   >      </td></tr>";
-		cells +=" </form>";
-	}
-	return(cells);
-}
-
-/*************************************************************************************************************************************************************/
 
 %>
 
@@ -611,9 +530,7 @@ public String  buildCellsAsset( HashMap<String, String> hm, JspWriter out,  List
 	
 	//ArrayList<String> list2 = new ArrayList<String>();
 	 List<Pair<ContractData, List<AssetData> >> list = (List<Pair<ContractData, List<AssetData> >>) session.getAttribute("rtnPair");
-	 request.getSession().setAttribute("rtnPairList", list);
-	 request.getSession().setAttribute("JB", "JB_TEST");
-	 
+
 	 int lsz = list.size();
 	 int rtnArrSZ = 0;
 	 ContractData contractData = new ContractData();
